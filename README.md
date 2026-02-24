@@ -1,9 +1,9 @@
 # WhaleChat
 
-This is the Chat app for Whaletracker ported to Elixir for concurrency and realtime speeds. You can interact with a demo running on Pheonix, connected to the real database: http://173.255.237.230:4001/
-Porting the rest of Whaletracker's frontend to Elixir and Phoenix may be soon to follow.
+This is an ongoing project to port the full frontend of Whaletracker to Elixir for concurrency and realtime speeds. You can interact with a demo running on Pheonix, connected to the real database: http://173.255.237.230:4001/
+This project aims to port the entirety of Whaletracker to Elixir. See the current version built on PHP, Js and HTML at https://kogasa.tf/stats/
 
-## Learn more
+## Learn more about Phoenix
 
 * Official website: https://www.phoenixframework.org/
 * Guides: https://hexdocs.pm/phoenix/overview.html

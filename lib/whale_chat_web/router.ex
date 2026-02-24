@@ -21,10 +21,19 @@ defmodule WhaleChatWeb.Router do
     plug WhaleChatWeb.Plugs.ChatIdentity
   end
 
+  pipeline :mapsdb_api do
+    plug :accepts, ["json"]
+    plug :fetch_session
+  end
+
   scope "/", WhaleChatWeb do
     pipe_through :browser
 
-    live "/", ChatLive
+    get "/", PageController, :home
+    live "/chat", ChatLive
+    get "/mapsdb", MapsDbController, :index
+    get "/mapsdb/index.php", MapsDbController, :index
+    get "/mapsdb/login.php", MapsDbLoginController, :show
   end
 
   scope "/stats", WhaleChatWeb do
@@ -33,6 +42,13 @@ defmodule WhaleChatWeb.Router do
     get "/chat.php", ChatApiController, :index
     post "/chat.php", ChatApiController, :create
     get "/online_summary.php", OnlineSummaryController, :index
+  end
+
+  scope "/mapsdb", WhaleChatWeb do
+    pipe_through :mapsdb_api
+
+    get "/api.php", MapsDbApiController, :handle
+    post "/api.php", MapsDbApiController, :handle
   end
 
   # Other scopes may use custom stacks.

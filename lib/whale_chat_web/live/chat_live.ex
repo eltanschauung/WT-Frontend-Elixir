@@ -108,6 +108,10 @@ defmodule WhaleChatWeb.ChatLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div id="chat-container">
+        <div class="chat-page-actions">
+          <a href="/" class="chat-home-btn">Return to Home</a>
+        </div>
+
         <div class="chat-topbar">
           <div>
             <h1 class="chat-title">WhaleChat (Elixir)</h1>

@@ -20,7 +20,13 @@ defmodule WhaleChatWeb.Endpoint do
     at: "/stats",
     from: "/var/www/kogasatopia/stats",
     gzip: false,
-    only: ~w(assets)
+    only: ~w(assets css background_product_pro.jpg)
+
+  plug Plug.Static,
+    at: "/",
+    from: "/var/www/kogasatopia",
+    gzip: false,
+    only: ~w(playercount_widget)
 
   # Serve at "/" the static files from "priv/static" directory.
   #

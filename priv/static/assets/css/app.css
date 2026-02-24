@@ -57,6 +57,41 @@ a {
   gap: 8px;
 }
 
+.chat-page-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin: 0 4px;
+}
+
+.chat-home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #f2f4f8;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.35rem 0.85rem;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.chat-home-btn:hover {
+  background: rgba(127, 200, 255, 0.12);
+  border-color: rgba(127, 200, 255, 0.35);
+}
+
+.chat-home-btn:active {
+  transform: translateY(1px);
+}
+
+.chat-home-btn:focus-visible {
+  outline: 2px solid rgba(243, 207, 103, 0.8);
+  outline-offset: 2px;
+}
+
 .chat-topbar {
   display: flex;
   align-items: center;
@@ -361,6 +396,10 @@ a {
 
   .chat-topbar {
     padding: 0.55rem 0.65rem;
+  }
+
+  .chat-page-actions {
+    margin: 0;
   }
 
   .chat-title {

@@ -19,7 +19,8 @@ config :whale_chat,
   server_avatar_url:
     System.get_env("WT_SERVER_AVATAR_URL") || "/stats/assets/server-chat-avatar.jpg",
   chat_assets_dir:
-    System.get_env("WT_CHAT_ASSETS_DIR") || "/var/www/kogasatopia/stats/assets"
+    System.get_env("WT_CHAT_ASSETS_DIR") || "/var/www/kogasatopia/stats/assets",
+  display_time_zone: System.get_env("WT_DISPLAY_TIME_ZONE") || "America/New_York"
 
 # Configure the endpoint
 config :whale_chat, WhaleChatWeb.Endpoint,
