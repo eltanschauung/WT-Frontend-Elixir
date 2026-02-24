@@ -1,13 +1,7 @@
 # WhaleChat
 
-To start your Phoenix server:
-
-* Run `mix setup` to install and setup dependencies
-* Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
-
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
-
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+This is the Chat app for Whaletracker ported to Elixir for concurrency and realtime speeds. You can interact with a demo running on Pheonix, connected to the real database: http://173.255.237.230:4001/
+Porting the rest of Whaletracker's frontend to Elixir and Phoenix may be soon to follow.
 
 ## Learn more
 
