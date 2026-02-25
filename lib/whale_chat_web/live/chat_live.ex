@@ -2,11 +2,13 @@ defmodule WhaleChatWeb.ChatLive do
   use WhaleChatWeb, :live_view
 
   alias WhaleChat.Chat
+  @poll_ms 4_000
 
   @impl true
   def mount(_params, session, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(WhaleChat.PubSub, Chat.topic())
+      Process.send_after(self(), :poll_new_messages, @poll_ms)
     end
 
     persona = session["wt_chat_persona"] || Chat.ensure_session_persona(nil)
@@ -29,6 +31,7 @@ defmodule WhaleChatWeb.ChatLive do
      socket
      |> assign(:page_title, "Live Chat · WhaleChat")
      |> assign(:messages, payload.messages || [])
+     |> assign(:latest_id, payload.latest_id || payload.newest_id)
      |> assign(:oldest_id, payload.oldest_id)
      |> assign(:has_more_older, payload.has_more_older)
      |> assign(:status, nil)
@@ -100,7 +103,29 @@ defmodule WhaleChatWeb.ChatLive do
 
   @impl true
   def handle_info({:new_message, msg}, socket) do
-    {:noreply, update(socket, :messages, fn messages -> dedupe_by_id(messages ++ [msg]) end)}
+    latest_id = max_id(socket.assigns.latest_id, msg)
+
+    {:noreply,
+     socket
+     |> assign(:latest_id, latest_id)
+     |> update(:messages, fn messages -> dedupe_by_id(messages ++ [msg]) end)}
+  end
+
+  @impl true
+  def handle_info(:poll_new_messages, socket) do
+    payload =
+      case socket.assigns[:latest_id] do
+        id when is_integer(id) and id > 0 -> Chat.list_messages(%{after: id, limit: 100})
+        _ -> Chat.list_messages(%{limit: 1})
+      end
+
+    socket =
+      socket
+      |> assign(:latest_id, payload[:latest_id] || socket.assigns[:latest_id])
+      |> update(:messages, fn messages -> dedupe_by_id(messages ++ (payload[:messages] || [])) end)
+
+    Process.send_after(self(), :poll_new_messages, @poll_ms)
+    {:noreply, socket}
   end
 
   @impl true
@@ -207,6 +232,16 @@ defmodule WhaleChatWeb.ChatLive do
     end)
     |> elem(1)
     |> Enum.reverse()
+  end
+
+  defp max_id(current, msg) do
+    msg_id = Map.get(msg, :id) || Map.get(msg, "id")
+
+    cond do
+      is_integer(current) and is_integer(msg_id) -> max(current, msg_id)
+      is_integer(msg_id) -> msg_id
+      true -> current
+    end
   end
 
   defp short_hash(session) do

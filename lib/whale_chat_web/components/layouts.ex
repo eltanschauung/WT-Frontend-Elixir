@@ -30,13 +30,14 @@ defmodule WhaleChatWeb.Layouts do
   attr :current_scope, :map,
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
+  attr :wide, :boolean, default: false, doc: "allow wider content wrapper"
 
   slot :inner_block, required: true
 
   def app(assigns) do
     ~H"""
     <main class="whalechat-page-shell">
-      <div class="whalechat-page-inner">
+      <div class={["whalechat-page-inner", @wide && "whalechat-page-inner--wide"]}>
         {render_slot(@inner_block)}
       </div>
     </main>

@@ -51,6 +51,10 @@ a {
   margin: 0 auto;
 }
 
+.whalechat-page-inner--wide {
+  width: min(80vw, 1920px);
+}
+
 #chat-container {
   display: flex;
   flex-direction: column;

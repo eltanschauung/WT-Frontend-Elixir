@@ -31,6 +31,7 @@ defmodule WhaleChatWeb.Router do
 
     get "/", PageController, :home
     live "/chat", ChatLive
+    get "/online", OnlineController, :index
     get "/mapsdb", MapsDbController, :index
     get "/mapsdb/index.php", MapsDbController, :index
     get "/mapsdb/login.php", MapsDbLoginController, :show
@@ -42,6 +43,7 @@ defmodule WhaleChatWeb.Router do
     get "/chat.php", ChatApiController, :index
     post "/chat.php", ChatApiController, :create
     get "/online_summary.php", OnlineSummaryController, :index
+    get "/online.php", OnlineApiController, :index
   end
 
   scope "/mapsdb", WhaleChatWeb do

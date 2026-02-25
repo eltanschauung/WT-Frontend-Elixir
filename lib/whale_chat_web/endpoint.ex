@@ -26,7 +26,7 @@ defmodule WhaleChatWeb.Endpoint do
     at: "/",
     from: "/var/www/kogasatopia",
     gzip: false,
-    only: ~w(playercount_widget)
+    only: ~w(playercount_widget leaderboard)
 
   # Serve at "/" the static files from "priv/static" directory.
   #
