@@ -215,7 +215,15 @@
         if (!Number.isFinite(count) || count < 0) count = 0;
         if (!Number.isFinite(max) || max <= 0) max = 32;
 
-        if (this.navCountEl) this.navCountEl.textContent = `${count} / ${max}`;
+        if (this.navCountEl) {
+          const label = `${count} / ${max}`;
+          this.navCountEl.textContent = label;
+          const mirrorId = this.navCountEl.getAttribute("data-mirror-target");
+          if (mirrorId) {
+            const mirror = document.getElementById(mirrorId);
+            if (mirror) mirror.textContent = label;
+          }
+        }
 
         if (this.chatInput) {
           const template = this.chatInput.getAttribute("data-dynamic-placeholder") || "Type to {count} players | All messages are deleted after 24hrs";

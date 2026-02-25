@@ -10,6 +10,7 @@
       .mapsdb-page { min-height: 100vh; padding: 2.5rem; display: flex; justify-content: center; }
       .mapsdb-card { width: min(1200px, 100%); background: var(--panel-bg, rgba(18,20,28,.92)); border-radius: 18px; padding: 2rem; border: 1px solid rgba(255,255,255,.1); box-shadow: 0 20px 45px rgba(0,0,0,.55); }
       .mapsdb-page-actions { display:flex; margin-bottom: .9rem; }
+      .mapsdb-page-actions .tab-controls { margin-bottom: 0; gap: .6rem; display:flex; flex-wrap:wrap; }
       .mapsdb-home-btn {
         display:inline-flex; align-items:center; justify-content:center;
         text-decoration:none; color:var(--text-primary, #f5f6fa);
@@ -20,6 +21,9 @@
       }
       .mapsdb-home-btn:hover { border-color: rgba(127, 200, 255, 0.55); background: rgba(127, 200, 255, 0.16); }
       .mapsdb-home-btn:active { transform: translateY(1px); }
+      .mapsdb-page-actions .tab-button,
+      .mapsdb-page-actions .tab-button:link,
+      .mapsdb-page-actions .tab-button:visited { padding: .45rem .95rem; }
       .mapsdb-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.25rem; }
       .mapsdb-stats { display:flex; gap:.8rem; align-items:center; }
       .mapsdb-layout { display:grid; grid-template-columns:minmax(280px,.4fr) minmax(360px,.6fr); gap:1.1rem; }
@@ -81,7 +85,25 @@
     <div class="mapsdb-page">
       <div class="mapsdb-card">
         <div class="mapsdb-page-actions">
-          <a href="/" class="mapsdb-home-btn">Return to Home</a>
+          <div class="tab-controls">
+            <a href="/" class="tab-button">
+              <span class="tab-button-label tab-button-label--desktop">Home</span>
+              <span class="tab-button-label tab-button-label--mobile">Home</span>
+            </a>
+            <a href="/online" class="tab-button">
+              <span class="tab-button-label tab-button-label--desktop">Online Now</span>
+              <span class="tab-button-label tab-button-label--mobile">Online</span>
+              <span id="nav-online-count" class="tab-button-count" aria-live="polite">0 / 32</span>
+            </a>
+            <a href="/chat" class="tab-button">
+              <span class="tab-button-label tab-button-label--desktop">Chat</span>
+              <span class="tab-button-label tab-button-label--mobile">Chat</span>
+            </a>
+            <a href="/mapsdb" class="tab-button">
+              <span class="tab-button-label tab-button-label--desktop">MapsDB</span>
+              <span class="tab-button-label tab-button-label--mobile">MapsDB</span>
+            </a>
+          </div>
         </div>
 
         <div class="popularity-card">
@@ -573,6 +595,23 @@
               }
             });
           }
+
+          const navOnlineCount = document.getElementById('nav-online-count');
+          const updateNavOnlineCount = async () => {
+            if (!navOnlineCount) return;
+            try {
+              const res = await fetch('/stats/online_summary.php', { cache: 'no-store' });
+              if (!res.ok) return;
+              const payload = await res.json();
+              const count = Number(payload.player_count || 0);
+              const max = Number(payload.visible_max || payload.visible_max_players || 32) || 32;
+              navOnlineCount.textContent = `${Math.max(0, count)} / ${max > 0 ? max : 32}`;
+            } catch (_) {
+              // ignore
+            }
+          };
+          updateNavOnlineCount();
+          setInterval(updateNavOnlineCount, 10000);
         })();
       </script>
     <% end %>

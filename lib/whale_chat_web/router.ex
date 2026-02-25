@@ -29,11 +29,10 @@ defmodule WhaleChatWeb.Router do
   scope "/", WhaleChatWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    get "/", StatsController, :index
+    get "/nav", PageController, :home
     live "/chat", ChatLive
     get "/online", OnlineController, :index
-    get "/stats", StatsController, :index
-    get "/stats/index.php", StatsController, :index
     get "/stats/login.php", StatsLoginController, :show
     get "/mapsdb", MapsDbController, :index
     get "/mapsdb/index.php", MapsDbController, :index

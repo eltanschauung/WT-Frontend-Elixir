@@ -86,6 +86,6 @@ defmodule WhaleChatWeb.StatsApiController do
   defp page_url(page, q) do
     params = [{"page", Integer.to_string(page)}]
     params = if is_binary(q) and String.trim(q) != "", do: [{"q", q} | params], else: params
-    "/stats/index.php?" <> URI.encode_query(params)
+    "/?" <> URI.encode_query(params)
   end
 end

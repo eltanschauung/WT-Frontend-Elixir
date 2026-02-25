@@ -131,10 +131,16 @@ defmodule WhaleChatWeb.ChatLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} wide={true}>
       <div id="chat-container">
-        <div class="chat-page-actions">
-          <a href="/" class="chat-home-btn">Return to Home</a>
+        <div class="chat-page-actions chat-nav-row">
+          <a href="/" class="chat-home-btn">Home</a>
+          <a href="/online" class="chat-nav-pill">
+            Online Now
+            <span id="chat-nav-online-count-top" class="chat-nav-pill-count">0 / 32</span>
+          </a>
+          <a href="/chat" class="chat-nav-pill">Chat</a>
+          <a href="/mapsdb" class="chat-nav-pill">MapsDB</a>
         </div>
 
         <div class="chat-topbar">
@@ -143,7 +149,7 @@ defmodule WhaleChatWeb.ChatLive do
             <p id="nav-chat-label" class="chat-subtitle">Last msg. --</p>
           </div>
           <div class="chat-topbar-right">
-            <span id="nav-online-count" class="chat-online-count">
+            <span id="nav-online-count" class="chat-online-count" data-mirror-target="chat-nav-online-count-top">
               0 / 32
             </span>
           </div>

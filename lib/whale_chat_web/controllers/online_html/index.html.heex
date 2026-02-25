@@ -2,12 +2,6 @@
   <style>
     .online-page { max-width: 1880px; margin: 0 auto; padding: 0.5rem 0.75rem 1rem; }
     .online-page-actions { display:flex; margin: 0 0 .6rem; }
-    .online-home-btn {
-      display:inline-flex; align-items:center; justify-content:center; text-decoration:none;
-      color:#f2f4f8; font-weight:700; font-size:.9rem; padding:.35rem .85rem;
-      border-radius:999px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.05);
-    }
-    .online-home-btn:hover { border-color: rgba(127,200,255,.35); background: rgba(127,200,255,.12); }
     .online-topbar {
       display:flex; justify-content:space-between; align-items:center; gap:.75rem;
       margin:0 0 .6rem; padding:.7rem .85rem; border-radius:10px;
@@ -112,8 +106,14 @@
   </style>
 
   <div class="online-page">
-    <div class="online-page-actions">
-      <a href="/" class="online-home-btn">Return to Home</a>
+    <div class="online-page-actions chat-nav-row">
+      <a href="/" class="chat-home-btn">Home</a>
+      <a href="/online" class="chat-nav-pill">
+        Online Now
+        <span id="nav-online-count" class="chat-nav-pill-count" aria-live="polite">0 / 32</span>
+      </a>
+      <a href="/chat" class="chat-nav-pill">Chat</a>
+      <a href="/mapsdb" class="chat-nav-pill">MapsDB</a>
     </div>
 
     <div class="online-topbar">
@@ -121,7 +121,7 @@
         <h1>Online Now (Elixir)</h1>
         <p>Live server/player snapshot from `whaletracker_online` + `whaletracker_servers`</p>
       </div>
-      <span id="nav-online-count" class="online-nav-count">0 / 32</span>
+      <span id="online-topbar-count" class="online-nav-count">0 / 32</span>
     </div>
 
     <div class="online-shell">
@@ -165,6 +165,7 @@
   const onlineTbody = onlineTable ? onlineTable.querySelector('tbody') : null;
   const onlineEmpty = document.getElementById('online-empty');
   const onlineCountLabel = document.getElementById('nav-online-count');
+  const onlineTopbarCount = document.getElementById('online-topbar-count');
   const classIconBase = <%= Phoenix.HTML.raw(Jason.encode!(String.trim_trailing(@class_icon_base || "/leaderboard/", "/"))) %> + '/';
   const mapCardsContainer = document.getElementById('online-map-cards');
   let visibleMaxPlayers = 32;
@@ -207,7 +208,11 @@
       if (info.icon) { const icon = document.createElement('img'); icon.className = 'online-class-icon'; icon.src = info.icon; icon.alt = info.name; icon.title = info.name; wrapper.appendChild(icon); }
       if (wrapper.children.length > 0) target.appendChild(wrapper);
   }
-  function updateOnlineButtonInfo(count, max) { if (onlineCountLabel) onlineCountLabel.textContent = `${count} / ${max}`; }
+  function updateOnlineButtonInfo(count, max) {
+      const label = `${count} / ${max}`;
+      if (onlineCountLabel) onlineCountLabel.textContent = label;
+      if (onlineTopbarCount) onlineTopbarCount.textContent = label;
+  }
 
   function sortOnlineTableByState() {
       if (!onlineTable || !onlineTbody || !onlineSortState.key) return;

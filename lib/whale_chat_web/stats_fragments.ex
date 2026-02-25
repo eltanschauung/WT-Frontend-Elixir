@@ -168,7 +168,7 @@ defmodule WhaleChatWeb.StatsFragments do
   defp cumulative_toolbar_html(q, page, total_rows, total_pages, prev_url, next_url) do
     """
     <div class="table-toolbar">
-      <form class="search-bar toolbar-search" method="get" action="/stats/index.php" data-rate-limit-ms="1500">
+      <form class="search-bar toolbar-search" method="get" action="/" data-rate-limit-ms="1500">
         <input type="text" name="q" value="#{e(q)}" placeholder="Search players by Steam name or SteamID">
         <button type="submit">Search</button>
         <p class="toolbar-search__rate-notice" aria-live="polite" hidden></p>
@@ -377,7 +377,7 @@ defmodule WhaleChatWeb.StatsFragments do
   defp page_url(q, page) do
     params = [{"page", Integer.to_string(page)}]
     params = if is_binary(q) and String.trim(q) != "", do: [{"q", q} | params], else: params
-    "/stats/index.php?" <> URI.encode_query(params)
+    "/?" <> URI.encode_query(params)
   end
 
   defp format_log_datetime(ts) when is_integer(ts) and ts > 0 do
