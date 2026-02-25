@@ -7,8 +7,43 @@
     <link rel="stylesheet" href="/stats/css/whaletracker.css" />
     <style>
       body { margin: 0; }
-      .mapsdb-page { min-height: 100vh; padding: 2.5rem; display: flex; justify-content: center; }
-      .mapsdb-card { width: min(1200px, 100%); background: var(--panel-bg, rgba(18,20,28,.92)); border-radius: 18px; padding: 2rem; border: 1px solid rgba(255,255,255,.1); box-shadow: 0 20px 45px rgba(0,0,0,.55); }
+      .mapsdb-page { min-height: 100vh; padding: 1rem; }
+      .mapsdb-shell { width: min(80vw, 1920px); margin: 0 auto; color: #edf1f8; }
+      .mapsdb-card {
+        width: 100%;
+        background: linear-gradient(160deg, rgba(18, 23, 34, .850), rgba(11, 14, 22, .90));
+        border-radius: 18px;
+        padding: 1.1rem 1.1rem 1rem;
+        border: 1px solid rgba(142,186,255,.14);
+        box-shadow: 0 18px 44px rgba(0,0,0,.30);
+        backdrop-filter: blur(8px);
+      }
+      .stats-header-shell {
+        margin-bottom: .9rem;
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+      }
+      .stats-header-shell .header { margin: 0; }
+      .stats-auth { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; justify-content:flex-end; }
+      .stats-header-shell .header-actions { gap: .75rem; }
+      .stats-header-shell .header-user .steam-logout { margin-top: 0; }
+      .stats-header-shell .header-user { gap: .9rem; }
+      .stats-header-shell .header-user-avatar {
+        width: 48px;
+        height: 48px;
+        flex: 0 0 auto;
+      }
+      .stats-header-shell .header-user-meta { min-width: 0; max-width: 100%; }
+      .stats-header-shell .header-user-meta .stats-sub {
+        display: block;
+        font-size: .75rem;
+        line-height: 1.15;
+        word-break: break-all;
+        white-space: normal;
+      }
       .mapsdb-page-actions { display:flex; margin-bottom: .9rem; }
       .mapsdb-page-actions .tab-controls { margin-bottom: 0; gap: .6rem; display:flex; flex-wrap:wrap; }
       .mapsdb-home-btn {
@@ -24,6 +59,15 @@
       .mapsdb-page-actions .tab-button,
       .mapsdb-page-actions .tab-button:link,
       .mapsdb-page-actions .tab-button:visited { padding: .45rem .95rem; }
+      .mapsdb-title-row {
+        display:flex; flex-wrap:wrap; justify-content:space-between; gap:.8rem;
+        align-items:flex-start; margin-bottom:.8rem;
+        padding: .1rem .15rem 0;
+      }
+      .mapsdb-title-row h1 { margin:0; font-size:1.2rem; letter-spacing:.03em; }
+      .mapsdb-title-row h1 span { color: #66b5ff; }
+      .stats-sub { margin:.2rem 0 0; color:#b5bfd0; font-size:.9rem; }
+      .mapsdb-sub { margin:.2rem 0 0; color:#b5bfd0; font-size:.9rem; }
       .mapsdb-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.25rem; }
       .mapsdb-stats { display:flex; gap:.8rem; align-items:center; }
       .mapsdb-layout { display:grid; grid-template-columns:minmax(280px,.4fr) minmax(360px,.6fr); gap:1.1rem; }
@@ -83,7 +127,61 @@
   </head>
   <body>
     <div class="mapsdb-page">
+      <div class="mapsdb-shell">
       <div class="mapsdb-card">
+        <div class="stats-header-shell">
+          <header class="header">
+            <div class="brand">
+              <img
+                src="/stats/assets/whaletracker_logo.png"
+                width="455"
+                height="250"
+                style="width:50%;height:auto"
+              >
+            </div>
+            <div class="animation">
+              <img
+                src="/stats/assets/wholesome2.gif"
+                width="266"
+                height="108"
+                style="height:auto"
+              >
+            </div>
+            <div class="header-actions stats-auth">
+            <%= if @mapsdb.is_logged_in && @mapsdb.current_steamid do %>
+              <div class="header-user">
+                <%= if @mapsdb.viewer_profile do %>
+                  <img
+                    class="header-user-avatar"
+                    src={@mapsdb.viewer_profile[:avatar] || "/stats/assets/whaley-avatar.jpg"}
+                    alt=""
+                  />
+                  <div class="header-user-meta">
+                    <span
+                      class={["header-user-name", @mapsdb.is_admin && "admin-name"]}
+                      title={if(@mapsdb.is_admin, do: "Admin", else: nil)}
+                    ><%= @mapsdb.viewer_profile[:personaname] || @mapsdb.current_steamid %></span>
+                    <span class="stats-sub" style="margin:0;"><%= @mapsdb.current_steamid %><%= if !@mapsdb.is_admin, do: " (browse-only)", else: "" %></span>
+                  </div>
+                <% else %>
+                  <span class="stats-sub" style="margin:0;">Signed in</span>
+                <% end %>
+              </div>
+              <a class="steam-logout" href={@mapsdb.logout_url}>Logout</a>
+            <% else %>
+              <a class="steam-login" href={@mapsdb.login_url}>Login with Steam</a>
+            <% end %>
+            </div>
+          </header>
+        </div>
+
+        <div class="mapsdb-title-row">
+          <div>
+            <h1>WhaleTracker <span>MapsDB</span> (Elixir)</h1>
+            <p class="mapsdb-sub">Manage <code>cfg</code> files via session login.</p>
+          </div>
+        </div>
+
         <div class="mapsdb-page-actions">
           <div class="tab-controls">
             <a href="/" class="tab-button">
@@ -93,7 +191,11 @@
             <a href="/online" class="tab-button">
               <span class="tab-button-label tab-button-label--desktop">Online Now</span>
               <span class="tab-button-label tab-button-label--mobile">Online</span>
-              <span id="nav-online-count" class="tab-button-count" aria-live="polite">0 / 32</span>
+              <span id="nav-online-count" class="tab-button-count" aria-live="polite">-- / --</span>
+            </a>
+            <a href="/logs" class="tab-button">
+              <span class="tab-button-label tab-button-label--desktop">Match Logs</span>
+              <span class="tab-button-label tab-button-label--mobile">Logs</span>
             </a>
             <a href="/chat" class="tab-button">
               <span class="tab-button-label tab-button-label--desktop">Chat</span>
@@ -121,21 +223,6 @@
             <p class="popularity-placeholder" id="popularity-placeholder">No popularity chart data available yet.</p>
             <canvas id="popularity-chart" style="display:none"></canvas>
           <% end %>
-        </div>
-
-        <div class="mapsdb-header">
-          <div>
-            <h1>Maps Database Editor (Elixir)</h1>
-            <p class="mapsdb-sub">Manage <code>tf/cfg/mapsdb</code> configs via session login.</p>
-          </div>
-          <div class="mapsdb-stats">
-            <%= if @mapsdb.is_logged_in && @mapsdb.current_steamid do %>
-              <span><code><%= @mapsdb.current_steamid %></code> (<%= if @mapsdb.is_admin, do: "admin", else: "browse-only" %>)</span>
-              <a class="steam-logout" href={@mapsdb.logout_url}>Sign out</a>
-            <% else %>
-              <a class="steam-login" href={@mapsdb.login_url}>Sign in (Dev)</a>
-            <% end %>
-          </div>
         </div>
 
         <%= if @mapsdb.maps_dir_missing do %>
@@ -239,6 +326,7 @@
             </div>
           <% end %>
         <% end %>
+      </div>
       </div>
     </div>
 
@@ -597,6 +685,9 @@
           }
 
           const navOnlineCount = document.getElementById('nav-online-count');
+          if (navOnlineCount && window.WTOnlineCountCache?.apply) {
+            window.WTOnlineCountCache.apply(navOnlineCount);
+          }
           const updateNavOnlineCount = async () => {
             if (!navOnlineCount) return;
             try {
@@ -605,7 +696,10 @@
               const payload = await res.json();
               const count = Number(payload.player_count || 0);
               const max = Number(payload.visible_max || payload.visible_max_players || 32) || 32;
-              navOnlineCount.textContent = `${Math.max(0, count)} / ${max > 0 ? max : 32}`;
+              const safeCount = Math.max(0, count);
+              const safeMax = max > 0 ? max : 32;
+              navOnlineCount.textContent = `${safeCount} / ${safeMax}`;
+              window.WTOnlineCountCache?.write?.({ player_count: safeCount, visible_max: safeMax, updated: payload.updated });
             } catch (_) {
               // ignore
             }

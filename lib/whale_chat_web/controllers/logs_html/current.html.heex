@@ -1,0 +1,133 @@
+<Layouts.app flash={@flash} wide={true}>
+  <link rel="stylesheet" href="/stats/css/whaletracker.css">
+  <style>
+    .logs-current-page {}
+    .logs-current-shell {}
+    .logs-current-topbar {}
+    .logs-current-status {}
+    .logs-current-subnav { align-items: center; }
+    .logs-mode-row { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; }
+    .logs-mode-pill {}
+    .logs-current-refresh {}
+    .logs-current-content {}
+    .current-log-container {
+      min-height: 220px;
+    }
+    .current-log-container .log-entry {
+      margin: 0;
+      border-radius: 12px;
+      background: rgba(18, 20, 29, .78);
+      border: 1px solid rgba(255,255,255,.07);
+      overflow: hidden;
+    }
+    .current-log-container .log-summary {
+      display:flex; align-items:center; flex-wrap:wrap; gap:.55rem;
+      padding: .75rem .9rem; background: rgba(255,255,255,.02);
+    }
+    .current-log-container .log-body { padding: .85rem .9rem; }
+    .current-log-container .gamemode-label {
+      display:inline-flex; align-items:center; justify-content:center;
+      border-radius:999px; padding:.18rem .55rem;
+      background:rgba(127,200,255,.14); border:1px solid rgba(127,200,255,.18);
+      color:#bfe4ff; font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+    }
+    .current-log-container .log-table { width:100%; min-width:980px; }
+    .current-log-container .table-wrapper { overflow-x:auto; }
+    @media (max-width: 700px) { .logs-current-subnav { align-items: flex-start; } }
+  </style>
+
+  <div class="logs-current-page wt-page-pad">
+    <div class="chat-nav-row chat-nav-row-top">
+      <a href="/" class="chat-home-btn">Home</a>
+      <a href="/online" class="chat-nav-pill">
+        Online Now
+        <span id="nav-online-count" class="chat-nav-pill-count" aria-live="polite">-- / --</span>
+      </a>
+      <a href="/logs" class="chat-nav-pill">Match Logs</a>
+      <a href="/chat" class="chat-nav-pill">Chat</a>
+      <a href="/mapsdb" class="chat-nav-pill">MapsDB</a>
+    </div>
+
+    <div class="logs-current-topbar wt-topbar">
+      <div>
+        <h1>Current Match Log (Elixir)</h1>
+        <p>Phoenix port of `/var/www/kogasatopia/stats/logs/current/` using `/stats/current_log_fragment.php`</p>
+      </div>
+      <div class="logs-current-status wt-topbar-badge" id="current-log-status">Ready</div>
+    </div>
+
+    <div class="logs-current-shell wt-shell">
+      <div class="logs-current-subnav wt-subnav">
+        <div class="logs-mode-row">
+          <a href="/logs" class="logs-mode-pill wt-pill-link">Recent Logs</a>
+          <a href="/logs/short" class="logs-mode-pill wt-pill-link">Short Logs</a>
+          <a href="/logs/current" class="logs-mode-pill wt-pill-link is-active">Current Match</a>
+        </div>
+        <button type="button" class="logs-current-refresh wt-action-btn" id="refresh-current-log">Refresh Logs</button>
+      </div>
+      <div class="logs-current-content wt-content-shell">
+        <div id="current-log-container" class="current-log-container wt-content-box"><%= Phoenix.HTML.raw(@current_log_html || "Loading current log…") %></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const endpoint = "/stats/current_log_fragment.php";
+      const onlineSummaryEndpoint = "/stats/online_summary.php";
+      const refreshBtn = document.getElementById("refresh-current-log");
+      const container = document.getElementById("current-log-container");
+      const statusEl = document.getElementById("current-log-status");
+      const onlineCountEl = document.getElementById("nav-online-count");
+
+      function setStatus(text) {
+        if (statusEl) statusEl.textContent = text;
+      }
+
+      function updateOnlineCountLabel() {
+        if (!onlineCountEl) return;
+        fetch(onlineSummaryEndpoint + "?t=" + Date.now(), { cache: "no-store" })
+          .then((r) => r.ok ? r.json() : Promise.reject(new Error("summary request failed")))
+          .then((data) => {
+            const online = Number(data?.player_count || data?.online_players || data?.players || 0);
+            const max = Number(data?.visible_max || data?.visible_max_players || data?.max_players || data?.max || 32) || 32;
+            onlineCountEl.textContent = `${online} / ${max}`;
+            window.WTOnlineCountCache?.write?.({ player_count: online, visible_max: max, updated: data?.updated });
+          })
+          .catch(() => {});
+      }
+
+      async function loadCurrentLog() {
+        if (!container) return;
+        if (refreshBtn) refreshBtn.disabled = true;
+        setStatus("Loading…");
+        try {
+          const response = await fetch(endpoint + "?t=" + Date.now(), { cache: "no-store" });
+          if (!response.ok) throw new Error("Request failed");
+          const html = await response.text();
+          container.innerHTML = html;
+          setStatus("Updated just now");
+        } catch (err) {
+          console.error("[WhaleTracker] Failed to load current log", err);
+          setStatus("Failed to refresh");
+          container.textContent = "Failed to load current log. Please try again.";
+        } finally {
+          if (refreshBtn) refreshBtn.disabled = false;
+        }
+      }
+
+      function init() {
+        if (refreshBtn) refreshBtn.addEventListener("click", loadCurrentLog);
+        window.WTOnlineCountCache?.apply?.(onlineCountEl);
+        updateOnlineCountLabel();
+        window.setInterval(updateOnlineCountLabel, 10000);
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init, { once: true });
+      } else {
+        init();
+      }
+    })();
+  </script>
+</Layouts.app>
