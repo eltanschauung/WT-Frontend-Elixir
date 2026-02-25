@@ -20,7 +20,8 @@ defmodule WhaleChatWeb.Endpoint do
     at: "/stats",
     from: "/var/www/kogasatopia/stats",
     gzip: false,
-    only: ~w(assets css)
+    only: ~w(assets css cache),
+    headers: [{"cache-control", "public, max-age=31536000, immutable"}]
 
   plug Plug.Static,
     at: "/",

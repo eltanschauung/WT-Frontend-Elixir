@@ -3,6 +3,8 @@ defmodule WhaleChat.Chat.SteamProfiles do
 
   @cache_table :whale_chat_steam_profile_cache
   @ttl_seconds 24 * 3600
+  @php_cache_ttl_seconds 24 * 3600
+  @default_php_cache_dir "/var/www/kogasatopia/stats/cache"
 
   def fetch_many(steam_ids) when is_list(steam_ids) do
     ids =
@@ -14,7 +16,6 @@ defmodule WhaleChat.Chat.SteamProfiles do
 
     cond do
       ids == [] -> %{}
-      steam_api_key() == "" -> %{}
       true -> cached_and_fetch(ids)
     end
   end
@@ -25,7 +26,7 @@ defmodule WhaleChat.Chat.SteamProfiles do
     ensure_cache()
     now = System.system_time(:second)
 
-    {cached, missing} =
+    {cached_ets, missing_after_ets} =
       Enum.reduce(ids, {%{}, []}, fn sid, {acc, miss} ->
         case :ets.lookup(@cache_table, sid) do
           [{^sid, profile, expires_at}] when expires_at > now ->
@@ -36,17 +37,57 @@ defmodule WhaleChat.Chat.SteamProfiles do
         end
       end)
 
-    fetched =
-      missing
+    {cached_disk, stale_disk, missing} =
+      missing_after_ets
       |> Enum.reverse()
-      |> Enum.chunk_every(100)
-      |> Enum.reduce(%{}, fn chunk, acc -> Map.merge(acc, fetch_chunk(chunk)) end)
+      |> Enum.reduce({%{}, %{}, []}, fn sid, {fresh_acc, stale_acc, miss_acc} ->
+        case read_disk_cached_profile(sid, now) do
+          {:fresh, profile} ->
+            :ets.insert(@cache_table, {sid, profile, now + @ttl_seconds})
+            {Map.put(fresh_acc, sid, profile), stale_acc, miss_acc}
+
+          {:stale, profile} ->
+            {fresh_acc, Map.put(stale_acc, sid, profile), [sid | miss_acc]}
+
+          :missing ->
+            {fresh_acc, stale_acc, [sid | miss_acc]}
+        end
+      end)
+
+    fetched =
+      case steam_api_key() do
+        "" ->
+          %{}
+
+        _ ->
+          missing
+          |> Enum.reverse()
+          |> Enum.chunk_every(100)
+          |> Enum.reduce(%{}, fn chunk, acc -> Map.merge(acc, fetch_chunk(chunk)) end)
+      end
 
     Enum.each(fetched, fn {sid, profile} ->
       :ets.insert(@cache_table, {sid, profile, now + @ttl_seconds})
     end)
 
-    Map.merge(cached, fetched)
+    stale_fallback =
+      missing
+      |> Enum.reject(&Map.has_key?(fetched, &1))
+      |> Enum.reduce(%{}, fn sid, acc ->
+        case Map.fetch(stale_disk, sid) do
+          {:ok, profile} ->
+            :ets.insert(@cache_table, {sid, profile, now + 300})
+            Map.put(acc, sid, profile)
+
+          :error ->
+            acc
+        end
+      end)
+
+    cached_ets
+    |> Map.merge(cached_disk)
+    |> Map.merge(fetched)
+    |> Map.merge(stale_fallback)
   end
 
   defp fetch_chunk([]), do: %{}
@@ -62,7 +103,14 @@ defmodule WhaleChat.Chat.SteamProfiles do
         {:ok, %{status: 200, body: %{"response" => %{"players" => players}}}} when is_list(players) ->
           Map.new(players, fn player ->
             sid = player["steamid"]
-            {sid, %{"personaname" => player["personaname"], "avatarfull" => player["avatarfull"]}}
+
+            {sid,
+             %{
+               "steamid" => sid,
+               "personaname" => player["personaname"],
+               "avatarfull" => player["avatarfull"],
+               "profileurl" => player["profileurl"]
+             }}
           end)
 
         _ ->
@@ -74,6 +122,89 @@ defmodule WhaleChat.Chat.SteamProfiles do
   end
 
   defp steam_api_key, do: Application.get_env(:whale_chat, :steam_api_key, "")
+
+  defp read_disk_cached_profile(steamid, now) do
+    path = disk_cache_profile_path(steamid)
+
+    with true <- File.exists?(path),
+         {:ok, body} <- File.read(path),
+         {:ok, %{} = profile} <- Jason.decode(body) do
+      normalized = normalize_disk_profile(profile, steamid)
+
+      case File.stat(path, time: :posix) do
+        {:ok, stat} when is_integer(stat.mtime) ->
+          if now - stat.mtime <= @php_cache_ttl_seconds do
+            {:fresh, normalized}
+          else
+            {:stale, normalized}
+          end
+
+        _ ->
+          {:stale, normalized}
+      end
+    else
+      _ -> :missing
+    end
+  end
+
+  defp normalize_disk_profile(profile, steamid) do
+    avatarfull = profile |> Map.get("avatarfull") |> normalize_cached_avatar(profile)
+
+    profile
+    |> Map.put_new("steamid", steamid)
+    |> Map.put("avatarfull", avatarfull)
+    |> Map.put_new("personaname", steamid)
+  end
+
+  defp normalize_cached_avatar(nil, profile), do: normalize_cached_avatar("", profile)
+
+  defp normalize_cached_avatar(avatarfull, profile) when is_binary(avatarfull) do
+    avatar = String.trim(avatarfull)
+    avatar_cached = profile["avatar_cached"] |> to_string_safe() |> String.trim()
+    avatar_source = profile["avatar_source"] |> to_string_safe() |> String.trim()
+
+    cond do
+      avatar != "" and String.starts_with?(avatar, "/stats/cache/") and avatar_cache_exists?(avatar) ->
+        avatar
+
+      avatar != "" and String.starts_with?(avatar, "/stats/cache/") ->
+        if avatar_source != "", do: avatar_source, else: avatar
+
+      avatar != "" ->
+        avatar
+
+      avatar_cached != "" ->
+        local_url = "/stats/cache/" <> Path.basename(avatar_cached)
+        if avatar_cache_exists?(local_url), do: local_url, else: avatar_source
+
+      avatar_source != "" ->
+        avatar_source
+
+      true ->
+        ""
+    end
+  end
+
+  defp normalize_cached_avatar(_other, profile), do: normalize_cached_avatar("", profile)
+
+  defp avatar_cache_exists?("/stats/cache/" <> basename) do
+    File.exists?(Path.join(disk_cache_dir(), Path.basename(basename)))
+  end
+
+  defp avatar_cache_exists?(_), do: false
+
+  defp disk_cache_profile_path(steamid) do
+    sanitized = String.replace(steamid, ~r/\D+/, "")
+    Path.join(disk_cache_dir(), sanitized <> ".json")
+  end
+
+  defp disk_cache_dir do
+    Application.get_env(:whale_chat, :php_stats_cache_dir, @default_php_cache_dir)
+  end
+
+  defp to_string_safe(nil), do: ""
+  defp to_string_safe(value) when is_binary(value), do: value
+  defp to_string_safe(value), do: to_string(value)
 
   defp ensure_cache do
     case :ets.whereis(@cache_table) do
