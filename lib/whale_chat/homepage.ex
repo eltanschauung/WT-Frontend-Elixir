@@ -24,7 +24,7 @@ defmodule WhaleChat.Homepage do
     panels_html = read_fragment!(if(is_mobile, do: "panels_mobile.html", else: "panels.html"))
     blog_html = read_fragment!("blog.html")
     tabs_html = read_fragment!("tabs.html")
-    preload_tags = preload_image_tags()
+    preload_tags = preload_tags(is_mobile)
 
     """
     <!DOCTYPE html>
@@ -73,6 +73,27 @@ defmodule WhaleChat.Homepage do
     |> File.read!()
   end
 
+  defp preload_tags(is_mobile) do
+    style_tags =
+      LegacySite.homepage_preload_stylesheets()
+      |> Enum.reject(&(&1 == "/home_mobile.css" and not is_mobile))
+      |> Enum.map_join("\n", fn href -> ~s(<link rel="preload" as="style" href="#{href}">) end)
+
+    font_tags =
+      LegacySite.homepage_preload_fonts()
+      |> Enum.map_join("\n", fn href ->
+        ~s(<link rel="preload" as="font" href="#{href}" type="font/ttf" crossorigin>)
+      end)
+
+    misc_tags =
+      LegacySite.homepage_preload_documents()
+      |> Enum.map_join("\n", fn href -> ~s(<link rel="preload" as="image" href="#{href}">) end)
+
+    [style_tags, font_tags, misc_tags, preload_image_tags()]
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join("\n")
+  end
+
   defp preload_image_tags do
     high_priority = MapSet.new(["/background_lumberyard.png", "/main_panel.png", "/white_panel.png", "/trump_update_card.png"])
 
@@ -85,5 +106,4 @@ defmodule WhaleChat.Homepage do
       end
     end)
   end
-
 end

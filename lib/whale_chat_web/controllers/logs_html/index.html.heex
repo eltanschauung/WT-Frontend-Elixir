@@ -6,7 +6,7 @@
     .logs-topbar {}
     .logs-topbar-meta {}
     .logs-subnav {}
-    .logs-mode-row { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
+    .logs-mode-row {}
     .logs-mode-pill {}
     .logs-refresh {}
     .logs-content-shell {}
@@ -21,85 +21,30 @@
       justify-content: center;
       margin-top: .8rem;
     }
-    .logs-page-button {
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-      color: #e8edf8;
-      padding: .42rem .72rem;
-      border-radius: 999px;
-      cursor: pointer;
-      font-weight: 600;
-      line-height: 1;
-    }
-    .logs-page-button:hover { background: rgba(127,200,255,.12); }
-    .logs-page-button.active {
-      background: rgba(127,200,255,.20);
-      border-color: rgba(127,200,255,.28);
-    }
-    .logs-page-button:disabled { opacity: .6; cursor: default; }
-    .logs-container .logs-fragment-root { display: grid; gap: .6rem; }
-    .logs-container .log-entry {
-      margin: 0;
-      border-radius: 12px;
-      background: rgba(18, 20, 29, .78);
-      border: 1px solid rgba(255,255,255,.07);
-      overflow: hidden;
-    }
-    .logs-container .log-summary {
-      padding: .75rem .9rem;
-      gap: .55rem;
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      background: rgba(255,255,255,.02);
-    }
-    .logs-container .log-body { padding: .85rem .9rem; }
+    .logs-page-button {}
+    .logs-container .logs-fragment-root {}
+    .logs-container .log-entry {}
+    .logs-container .log-summary {}
+    .logs-container .log-body {}
     .logs-container .log-title { color: #eff3fb; }
     .logs-container .log-meta { color: #b9c4d7; }
-    .logs-container .gamemode-label {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 999px;
-      padding: .18rem .55rem;
-      background: rgba(127,200,255,.14);
-      border: 1px solid rgba(127,200,255,.18);
-      color: #bfe4ff;
-      font-size: .75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
+    .logs-container .gamemode-label {}
     .logs-topbar-meta { }
-    .logs-subnav { align-items: center; }
+    .logs-subnav { }
     @media (max-width: 700px) {
       .logs-page { padding-left: 0; padding-right: 0; }
-      .logs-subnav { align-items: flex-start; }
       .logs-topbar.wt-topbar { padding: .5rem .55rem; }
       .logs-topbar h1 { font-size: .95rem; }
       .logs-topbar p { font-size: .78rem; line-height: 1.2; }
       .logs-shell.wt-shell { padding: .5rem; border-radius: 12px; }
       .logs-content-shell.wt-content-shell { padding: .45rem; }
       .logs-container.wt-content-box { padding: .25rem; }
-      .logs-container .log-summary { padding: .55rem .6rem; gap: .35rem; }
-      .logs-container .log-body { padding: .55rem .6rem; }
       .logs-pagination { gap: .3rem; margin-top: .55rem; }
-      .logs-page-button { padding: .34rem .6rem; font-size: .8rem; }
     }
   </style>
 
   <div class="logs-page wt-page-pad">
-    <div class="chat-nav-row chat-nav-row-top">
-      <a href="/" class="chat-home-btn">Blog</a>
-      <a href="/stats" class="chat-home-btn">Stats</a>
-      <a href="/online" class="chat-nav-pill">
-        Online Now
-        <span id="nav-online-count" class="chat-nav-pill-count" aria-live="polite">-- / --</span>
-      </a>
-      <span class="chat-nav-pill" aria-current="page">Match Logs</span>
-      <a href="/chat" class="chat-nav-pill">Chat</a>
-      <a href="/mapsdb" class="chat-nav-pill">MapsDB</a>
-    </div>
+    <.section_nav active={:logs} chat_label_id="nav-chat-label" />
 
     <div class="logs-topbar wt-topbar">
       <div>
@@ -142,6 +87,7 @@
       const logsFragmentEndpoint = "/stats/logs_fragment.php";
       const onlineSummaryEndpoint = "/stats/online_summary.php";
       const onlineCountEl = document.getElementById("nav-online-count");
+      const navChatLabel = document.getElementById("nav-chat-label");
       const logsContainer = document.getElementById("logs-container");
       const logsEmpty = document.getElementById("logs-empty");
       const logsRefreshButton = document.getElementById("logs-refresh");
@@ -163,6 +109,32 @@
             window.WTOnlineCountCache?.write?.({ player_count: online, visible_max: max, updated: data?.updated });
           })
           .catch(() => {});
+      }
+
+      function formatChatAge(diffSeconds) {
+        if (!Number.isFinite(diffSeconds) || diffSeconds < 0) return "--";
+        if (diffSeconds < 60) return "now";
+        if (diffSeconds < 3600) { const m = Math.max(1, Math.floor(diffSeconds / 60)); return `${m} minute${m === 1 ? "" : "s"} ago`; }
+        if (diffSeconds < 86400) { const h = Math.max(1, Math.floor(diffSeconds / 3600)); return `${h} hour${h === 1 ? "" : "s"} ago`; }
+        if (diffSeconds < 604800) { const d = Math.max(1, Math.floor(diffSeconds / 86400)); return `${d} day${d === 1 ? "" : "s"} ago`; }
+        const w = Math.floor(diffSeconds / 604800);
+        if (w < 5) return `${w} week${w === 1 ? "" : "s"} ago`;
+        const mo = Math.max(1, Math.floor(diffSeconds / 2629800));
+        return `${mo} month${mo === 1 ? "" : "s"} ago`;
+      }
+
+      async function updateNavChatLabel() {
+        if (!navChatLabel) return;
+        if (window.WTChatAgeLabel?.update) return window.WTChatAgeLabel.update(navChatLabel);
+        try {
+          const res = await fetch(`/stats/chat.php?limit=1&alerts_only=1&t=${Date.now()}`, { cache: "no-store" });
+          if (!res.ok) return;
+          const payload = await res.json();
+          const messages = Array.isArray(payload?.messages) ? payload.messages : [];
+          if (!messages.length) { navChatLabel.textContent = "Last msg. --"; return; }
+          const createdAt = Number(messages[messages.length - 1]?.created_at || 0);
+          navChatLabel.textContent = `Last msg. ${formatChatAge(Math.floor(Date.now() / 1000) - createdAt)}`;
+        } catch (_) {}
       }
 
       function setEmptyState(visible, message) {
@@ -236,7 +208,9 @@
         if (logsRefreshButton) logsRefreshButton.addEventListener("click", () => fetchLogs(currentPage));
         window.WTOnlineCountCache?.apply?.(onlineCountEl);
         updateOnlineCountLabel();
+        updateNavChatLabel();
         window.setInterval(updateOnlineCountLabel, 10000);
+        window.setInterval(updateNavChatLabel, 60000);
       }
 
       if (document.readyState === "loading") {

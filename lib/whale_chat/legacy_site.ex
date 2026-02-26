@@ -16,6 +16,9 @@ defmodule WhaleChat.LegacySite do
     "/whaletracker.png",
     "/tf2steam.png"
   ]
+  @homepage_preload_stylesheets ["/styles.css", "/home_layout.css", "/home_mobile.css"]
+  @homepage_preload_fonts ["/fonts/TF2Secondary.ttf"]
+  @homepage_preload_documents ["/favicon.ico"]
 
   def docroot, do: @docroot
 
@@ -24,8 +27,17 @@ defmodule WhaleChat.LegacySite do
     |> Enum.uniq()
   end
 
+  def homepage_preload_stylesheets, do: @homepage_preload_stylesheets
+  def homepage_preload_fonts, do: @homepage_preload_fonts
+  def homepage_preload_documents, do: @homepage_preload_documents
+
   def homepage_immutable_images do
     homepage_preload_images()
+    |> MapSet.new()
+  end
+
+  def homepage_immutable_assets do
+    (homepage_preload_stylesheets() ++ homepage_preload_fonts() ++ homepage_preload_documents())
     |> MapSet.new()
   end
 

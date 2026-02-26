@@ -7,17 +7,9 @@
     <link rel="stylesheet" href="/stats/css/whaletracker.css" />
     <style>
       body { margin: 0; }
-      .mapsdb-page { min-height: 100vh; padding: 1rem; }
-      .mapsdb-shell { width: min(80vw, 1920px); margin: 0 auto; color: #edf1f8; }
-      .mapsdb-card {
-        width: 100%;
-        background: linear-gradient(160deg, rgba(18, 23, 34, .850), rgba(11, 14, 22, .90));
-        border-radius: 18px;
-        padding: 1.1rem 1.1rem 1rem;
-        border: 1px solid rgba(142,186,255,.14);
-        box-shadow: 0 18px 44px rgba(0,0,0,.30);
-        backdrop-filter: blur(8px);
-      }
+      .mapsdb-page {}
+      .mapsdb-shell {}
+      .mapsdb-card {}
       .stats-header-shell {
         margin-bottom: .9rem;
         padding: 0;
@@ -44,8 +36,8 @@
         word-break: break-all;
         white-space: normal;
       }
-      .mapsdb-page-actions { display:flex; margin-bottom: .9rem; }
-      .mapsdb-page-actions .tab-controls { margin-bottom: 0; gap: .6rem; display:flex; flex-wrap:wrap; }
+      .mapsdb-page-actions {}
+      .mapsdb-page-actions .tab-controls {}
       .mapsdb-home-btn {
         display:inline-flex; align-items:center; justify-content:center;
         text-decoration:none; color:var(--text-primary, #f5f6fa);
@@ -58,16 +50,39 @@
       .mapsdb-home-btn:active { transform: translateY(1px); }
       .mapsdb-page-actions .tab-button,
       .mapsdb-page-actions .tab-button:link,
-      .mapsdb-page-actions .tab-button:visited { padding: .45rem .95rem; }
-      .mapsdb-title-row {
-        display:flex; flex-wrap:wrap; justify-content:space-between; gap:.8rem;
-        align-items:flex-start; margin-bottom:.8rem;
-        padding: .1rem .15rem 0;
+      .mapsdb-page-actions .tab-button:visited {}
+      .mapsdb-page-actions .tab-button.wt-tab--orange {
+        background: rgba(242, 162, 74, .10);
+        border-color: rgba(242, 162, 74, .34);
+        color: #ffe0b2;
       }
-      .mapsdb-title-row h1 { margin:0; font-size:1.2rem; letter-spacing:.03em; }
-      .mapsdb-title-row h1 span { color: #66b5ff; }
+      .mapsdb-page-actions .tab-button.wt-tab--orange:hover {
+        background: rgba(242, 162, 74, .16);
+        border-color: rgba(242, 162, 74, .52);
+      }
+      .mapsdb-page-actions .tab-button.wt-tab--navy {
+        background: rgba(47, 59, 82, .28);
+        border-color: rgba(93, 106, 130, .46);
+        color: #e7eefc;
+      }
+      .mapsdb-page-actions .tab-button.wt-tab--navy:hover {
+        background: rgba(65, 80, 107, .34);
+        border-color: rgba(93, 106, 130, .72);
+      }
+      .mapsdb-page-actions .tab-button.wt-tab--gold {
+        background: rgba(243, 207, 103, .08);
+        border-color: rgba(243, 207, 103, .28);
+        color: #f6ebbd;
+      }
+      .mapsdb-page-actions .tab-button.wt-tab--gold:hover {
+        background: rgba(243, 207, 103, .14);
+        border-color: rgba(243, 207, 103, .44);
+      }
+      .mapsdb-title-row {}
+      .mapsdb-title-row h1 {}
+      .mapsdb-title-row h1 span {}
       .stats-sub { margin:.2rem 0 0; color:#b5bfd0; font-size:.9rem; }
-      .mapsdb-sub { margin:.2rem 0 0; color:#b5bfd0; font-size:.9rem; }
+      .mapsdb-sub {}
       .mapsdb-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.25rem; }
       .mapsdb-stats { display:flex; gap:.8rem; align-items:center; }
       .mapsdb-layout { display:grid; grid-template-columns:minmax(280px,.4fr) minmax(360px,.6fr); gap:1.1rem; }
@@ -123,21 +138,11 @@
       .popularity-control.active { background: rgba(127, 200, 255, 0.15); color: #e6f4ff; }
       .popularity-placeholder { margin-top:.5rem; color: var(--text-muted, #95a5b7); font-style: italic; }
       @media (max-width: 960px) {
-        .mapsdb-page { padding: .35rem; }
-        .mapsdb-shell { width: 100%; }
-        .mapsdb-card { padding: .7rem .65rem .6rem; border-radius: 14px; }
         .mapsdb-layout { grid-template-columns:1fr; gap: .7rem; }
         .map-panel, .map-editor { padding: .65rem; gap: .55rem; border-radius: 12px; }
         .map-panel { max-height: none; }
         .map-editor { min-height: 0; }
         #map-content { min-height: 280px; padding: .65rem; }
-        .mapsdb-title-row { margin-bottom: .55rem; }
-        .mapsdb-title-row h1 { font-size: 1.04rem; }
-        .mapsdb-page-actions { margin-bottom: .55rem; }
-        .mapsdb-page-actions .tab-controls { gap: .35rem; }
-        .mapsdb-page-actions .tab-button,
-        .mapsdb-page-actions .tab-button:link,
-        .mapsdb-page-actions .tab-button:visited { padding: .4rem .65rem; }
         .map-preview-grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
         .map-preview-card img { width: 132px; height: 99px; }
         .map-preview-title { max-width: 132px; }
@@ -212,37 +217,38 @@
         <div class="mapsdb-title-row">
           <div>
             <h1>WhaleTracker <span>MapsDB</span></h1>
-            <p class="mapsdb-sub">Server statistics, popularity, map popularity list. Logged-in Admins can access the config editor.</p>
+            <p class="mapsdb-sub">This page contains server statistics and a list of maps. Admins can log in to edit config files.</p>
           </div>
         </div>
 
         <div class="mapsdb-page-actions">
           <div class="tab-controls">
-            <a href="/" class="tab-button">
+            <a href="/" class="tab-button wt-tab--orange">
               <span class="tab-button-label tab-button-label--desktop">Blog</span>
               <span class="tab-button-label tab-button-label--mobile">Blog</span>
             </a>
-            <a href="/stats" class="tab-button">
+            <a href="/stats" class="tab-button wt-tab--navy">
               <span class="tab-button-label tab-button-label--desktop">Stats</span>
               <span class="tab-button-label tab-button-label--mobile">Stats</span>
             </a>
-            <a href="/online" class="tab-button">
+            <span class="tab-button wt-tab--navy" aria-current="page">
+              <span class="tab-button-label tab-button-label--desktop">MapsDB</span>
+              <span class="tab-button-label tab-button-label--mobile">MapsDB</span>
+            </span>
+            <a href="/online" class="tab-button wt-tab--gold">
               <span class="tab-button-label tab-button-label--desktop">Online Now</span>
               <span class="tab-button-label tab-button-label--mobile">Online</span>
               <span id="nav-online-count" class="tab-button-count" aria-live="polite">-- / --</span>
             </a>
-            <a href="/logs" class="tab-button">
+            <a href="/chat" class="tab-button wt-tab--gold">
+              <span class="tab-button-label tab-button-label--desktop">Chat</span>
+              <span class="tab-button-label tab-button-label--mobile">Chat</span>
+              <span id="nav-chat-label" class="tab-button-count" aria-live="polite">Last msg. --</span>
+            </a>
+            <a href="/logs" class="tab-button wt-tab--gold">
               <span class="tab-button-label tab-button-label--desktop">Match Logs</span>
               <span class="tab-button-label tab-button-label--mobile">Logs</span>
             </a>
-            <a href="/chat" class="tab-button">
-              <span class="tab-button-label tab-button-label--desktop">Chat</span>
-              <span class="tab-button-label tab-button-label--mobile">Chat</span>
-            </a>
-            <span class="tab-button" aria-current="page">
-              <span class="tab-button-label tab-button-label--desktop">MapsDB</span>
-              <span class="tab-button-label tab-button-label--mobile">MapsDB</span>
-            </span>
           </div>
         </div>
 
@@ -723,6 +729,7 @@
           }
 
           const navOnlineCount = document.getElementById('nav-online-count');
+          const navChatLabel = document.getElementById('nav-chat-label');
           if (navOnlineCount && window.WTOnlineCountCache?.apply) {
             window.WTOnlineCountCache.apply(navOnlineCount);
           }
@@ -742,8 +749,34 @@
               // ignore
             }
           };
+          const formatChatAge = (diffSeconds) => {
+            if (!Number.isFinite(diffSeconds) || diffSeconds < 0) return '--';
+            if (diffSeconds < 60) return 'now';
+            if (diffSeconds < 3600) { const m = Math.max(1, Math.floor(diffSeconds / 60)); return `${m} minute${m === 1 ? '' : 's'} ago`; }
+            if (diffSeconds < 86400) { const h = Math.max(1, Math.floor(diffSeconds / 3600)); return `${h} hour${h === 1 ? '' : 's'} ago`; }
+            if (diffSeconds < 604800) { const d = Math.max(1, Math.floor(diffSeconds / 86400)); return `${d} day${d === 1 ? '' : 's'} ago`; }
+            const w = Math.floor(diffSeconds / 604800);
+            if (w < 5) return `${w} week${w === 1 ? '' : 's'} ago`;
+            const mo = Math.max(1, Math.floor(diffSeconds / 2629800));
+            return `${mo} month${mo === 1 ? '' : 's'} ago`;
+          };
+          const updateNavChatLabel = async () => {
+            if (!navChatLabel) return;
+            if (window.WTChatAgeLabel?.update) return window.WTChatAgeLabel.update(navChatLabel);
+            try {
+              const res = await fetch(`/stats/chat.php?limit=1&alerts_only=1&t=${Date.now()}`, { cache: 'no-store' });
+              if (!res.ok) return;
+              const payload = await res.json();
+              const messages = Array.isArray(payload?.messages) ? payload.messages : [];
+              if (!messages.length) { navChatLabel.textContent = 'Last msg. --'; return; }
+              const createdAt = Number(messages[messages.length - 1]?.created_at || 0);
+              navChatLabel.textContent = `Last msg. ${formatChatAge(Math.floor(Date.now() / 1000) - createdAt)}`;
+            } catch (_) {}
+          };
           updateNavOnlineCount();
           setInterval(updateNavOnlineCount, 10000);
+          updateNavChatLabel();
+          setInterval(updateNavChatLabel, 60000);
         })();
       </script>
     <% end %>

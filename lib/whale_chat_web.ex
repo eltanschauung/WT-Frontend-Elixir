@@ -86,6 +86,7 @@ defmodule WhaleChatWeb do
       import Phoenix.HTML
       # Core UI components
       import WhaleChatWeb.CoreComponents
+      import WhaleChatWeb.NavComponents
       import WhaleChatWeb.ChatText
 
       # Common modules used in templates

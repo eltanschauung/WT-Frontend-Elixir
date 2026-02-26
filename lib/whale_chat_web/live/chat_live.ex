@@ -133,17 +133,10 @@ defmodule WhaleChatWeb.ChatLive do
     ~H"""
     <Layouts.app flash={@flash} wide={true}>
       <div id="chat-container">
-        <div class="chat-nav-row chat-nav-row-top">
-          <a href="/" class="chat-home-btn">Blog</a>
-          <a href="/stats" class="chat-home-btn">Stats</a>
-          <a href="/online" class="chat-nav-pill">
-            Online Now
-            <span id="chat-nav-online-count-top" class="chat-nav-pill-count">-- / --</span>
-          </a>
-          <a href="/logs" class="chat-nav-pill">Match Logs</a>
-          <span class="chat-nav-pill" aria-current="page">Chat</span>
-          <a href="/mapsdb" class="chat-nav-pill">MapsDB</a>
-        </div>
+        <.section_nav
+          active={:chat}
+          online_count_id="chat-nav-online-count-top"
+        />
 
         <div class="chat-topbar">
           <div>

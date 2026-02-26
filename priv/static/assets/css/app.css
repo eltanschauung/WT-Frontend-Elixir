@@ -109,6 +109,45 @@ a {
   transform: translateY(1px);
 }
 
+.chat-home-btn.site-nav-blog,
+.chat-nav-pill.site-nav-blog {
+  border-color: rgba(242, 162, 74, 0.2);
+  background: rgba(242, 162, 74, 0.04);
+  color: #f4dfc4;
+}
+
+.chat-home-btn.site-nav-blog:hover,
+.chat-nav-pill.site-nav-blog:hover {
+  border-color: rgba(242, 162, 74, 0.3);
+  background: rgba(242, 162, 74, 0.08);
+}
+
+.chat-home-btn.site-nav-navy,
+.chat-nav-pill.site-nav-navy {
+  border-color: rgba(93, 106, 130, 0.28);
+  background: rgba(47, 59, 82, 0.14);
+  color: #e7eefc;
+}
+
+.chat-home-btn.site-nav-navy:hover,
+.chat-nav-pill.site-nav-navy:hover {
+  border-color: rgba(93, 106, 130, 0.42);
+  background: rgba(65, 80, 107, 0.2);
+}
+
+.chat-home-btn.site-nav-gold,
+.chat-nav-pill.site-nav-gold {
+  border-color: rgba(243, 207, 103, 0.2);
+  background: rgba(243, 207, 103, 0.04);
+  color: #efe6c2;
+}
+
+.chat-home-btn.site-nav-gold:hover,
+.chat-nav-pill.site-nav-gold:hover {
+  border-color: rgba(243, 207, 103, 0.3);
+  background: rgba(243, 207, 103, 0.08);
+}
+
 .chat-nav-pill-count {
   display: inline-flex;
   align-items: center;
@@ -282,6 +321,296 @@ a {
 .wt-accent-link:hover {
   color: #ffc278;
   text-shadow: 0 0 10px rgba(242, 162, 74, 0.4);
+}
+
+.chat-home-btn[aria-current="page"],
+.chat-nav-pill[aria-current="page"] {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.chat-home-btn[aria-current="page"]:hover,
+.chat-nav-pill[aria-current="page"]:hover {
+  background: inherit;
+  border-color: inherit;
+  transform: none;
+}
+
+.tab-button[aria-current="page"],
+.tab-button[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tab-button[aria-current="page"]:hover,
+.tab-button[aria-disabled="true"]:hover {
+  background: inherit;
+  border-color: inherit;
+  transform: none;
+}
+
+@keyframes nav-flicker {
+  0%,
+  100% {
+    text-shadow:
+      0 -1px 2px #fff,
+      0 -2px 4px #ff3,
+      0 -5px 10px #f90,
+      0 -8px 16px #c33;
+  }
+
+  50% {
+    text-shadow:
+      0 -1px 1px #fff,
+      0 -2px 3px #fc0,
+      0 -4px 8px #f60,
+      0 -6px 12px #a22;
+  }
+}
+
+.nav-hub-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.6rem;
+  color: #eee;
+}
+
+.nav-hub-shell {
+  background: rgba(18, 20, 28, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.nav-hub-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+}
+
+.nav-hub-subtitle {
+  margin: 0 0 0.8rem;
+  color: #b8c0d0;
+}
+
+.nav-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.nav-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 12px;
+  padding: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(18, 20, 28, 0.72);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.nav-card:hover {
+  border-color: rgba(127, 200, 255, 0.34);
+  background: rgba(20, 23, 33, 0.86);
+}
+
+.nav-card-title {
+  margin-bottom: 0.3rem;
+  font-weight: 700;
+}
+
+.nav-card-title.fire {
+  animation: nav-flicker 2s infinite;
+}
+
+.nav-card-desc {
+  color: #c8d3e4;
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
+.nav-card-open {
+  margin-top: 0.45rem;
+  color: #9fd1ff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.online-page {
+  max-width: 100%;
+}
+
+.online-topbar {
+  max-width: 100%;
+  margin-bottom: 0.6rem;
+  color: #eee;
+}
+
+.online-nav-count {
+  min-width: 72px;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(243, 207, 103, 0.4);
+  background: rgba(243, 207, 103, 0.08);
+  color: #f6df93;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.online-shell {
+  background: rgba(18, 20, 28, 0.92);
+  border-radius: 16px;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.logs-mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.logs-subnav,
+.logs-current-subnav {
+  align-items: center;
+}
+
+.logs-page-button {
+  padding: 0.42rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e8edf8;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.logs-page-button:hover {
+  background: rgba(127, 200, 255, 0.12);
+}
+
+.logs-page-button.active {
+  background: rgba(127, 200, 255, 0.2);
+  border-color: rgba(127, 200, 255, 0.28);
+}
+
+.logs-page-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.logs-container .logs-fragment-root {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.logs-container .log-entry,
+.current-log-container .log-entry {
+  margin: 0;
+  border-radius: 12px;
+  background: rgba(18, 20, 29, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.logs-container .log-summary,
+.current-log-container .log-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.logs-container .log-body,
+.current-log-container .log-body {
+  padding: 0.85rem 0.9rem;
+}
+
+.logs-container .gamemode-label,
+.current-log-container .gamemode-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
+  background: rgba(127, 200, 255, 0.14);
+  border: 1px solid rgba(127, 200, 255, 0.18);
+  color: #bfe4ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mapsdb-page {
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.mapsdb-shell {
+  width: min(80vw, 1920px);
+  margin: 0 auto;
+  color: #edf1f8;
+}
+
+.mapsdb-card {
+  width: 100%;
+  background: linear-gradient(160deg, rgba(18, 23, 34, 0.85), rgba(11, 14, 22, 0.9));
+  border-radius: 18px;
+  padding: 1.1rem 1.1rem 1rem;
+  border: 1px solid rgba(142, 186, 255, 0.14);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+.mapsdb-page-actions {
+  display: flex;
+  margin-bottom: 0.9rem;
+}
+
+.mapsdb-page-actions .tab-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0;
+}
+
+.mapsdb-page-actions .tab-button,
+.mapsdb-page-actions .tab-button:link,
+.mapsdb-page-actions .tab-button:visited {
+  padding: 0.45rem 0.95rem;
+}
+
+.mapsdb-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+  padding: 0.1rem 0.15rem 0;
+}
+
+.mapsdb-title-row h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  letter-spacing: 0.03em;
+}
+
+.mapsdb-title-row h1 span {
+  color: #66b5ff;
+}
+
+.mapsdb-sub {
+  margin: 0.2rem 0 0;
+  color: #b5bfd0;
+  font-size: 0.9rem;
 }
 
 .chat-topbar {
@@ -704,5 +1033,92 @@ a {
   .chat-status {
     margin: 0 2px;
     font-size: 0.78rem;
+  }
+
+  .nav-hub-page {
+    padding: 0.35rem;
+  }
+
+  .nav-hub-shell {
+    padding: 0.75rem;
+    border-radius: 12px;
+  }
+
+  .nav-cards {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+  }
+
+  .nav-card {
+    padding: 0.75rem;
+  }
+
+  .nav-card-desc {
+    font-size: 0.86rem;
+  }
+
+  .online-shell {
+    padding: 0.6rem;
+    border-radius: 12px;
+  }
+
+  .online-topbar {
+    margin-bottom: 0.45rem;
+  }
+
+  .logs-subnav,
+  .logs-current-subnav {
+    align-items: flex-start;
+  }
+
+  .logs-page-button {
+    padding: 0.34rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .logs-container .log-summary,
+  .current-log-container .log-summary {
+    padding: 0.55rem 0.6rem;
+    gap: 0.35rem;
+  }
+
+  .logs-container .log-body,
+  .current-log-container .log-body {
+    padding: 0.55rem 0.6rem;
+  }
+
+  .mapsdb-page {
+    padding: 0.35rem;
+  }
+
+  .mapsdb-shell {
+    width: 100%;
+  }
+
+  .mapsdb-card {
+    padding: 0.7rem 0.65rem 0.6rem;
+    border-radius: 14px;
+  }
+
+  .mapsdb-title-row {
+    margin-bottom: 0.55rem;
+  }
+
+  .mapsdb-title-row h1 {
+    font-size: 1.04rem;
+  }
+
+  .mapsdb-page-actions {
+    margin-bottom: 0.55rem;
+  }
+
+  .mapsdb-page-actions .tab-controls {
+    gap: 0.35rem;
+  }
+
+  .mapsdb-page-actions .tab-button,
+  .mapsdb-page-actions .tab-button:link,
+  .mapsdb-page-actions .tab-button:visited {
+    padding: 0.4rem 0.65rem;
   }
 }

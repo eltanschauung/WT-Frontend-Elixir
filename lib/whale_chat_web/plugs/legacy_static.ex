@@ -97,7 +97,9 @@ defmodule WhaleChatWeb.Plugs.LegacyStatic do
         "/" <> request_path
       end
 
-    if MapSet.member?(LegacySite.homepage_immutable_images(), normalized) or info_path?(normalized) or hat_background_path?(normalized) do
+    if MapSet.member?(LegacySite.homepage_immutable_images(), normalized) or
+         MapSet.member?(LegacySite.homepage_immutable_assets(), normalized) or
+         info_path?(normalized) or hat_background_path?(normalized) do
       put_resp_header(conn, "cache-control", "public, max-age=31536000, immutable")
     else
       conn
