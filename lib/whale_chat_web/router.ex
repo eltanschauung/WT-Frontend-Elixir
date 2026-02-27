@@ -36,6 +36,8 @@ defmodule WhaleChatWeb.Router do
     get "/info/index.html", InfoController, :entry
     get "/stats", StatsController, :index
     get "/stats/index.php", StatsController, :index
+    get "/whaletracker", PageController, :whaletracker
+    get "/whaletracker/", PageController, :whaletracker
     get "/nav", PageController, :home
     live "/chat", ChatLive
     get "/online", OnlineController, :index
