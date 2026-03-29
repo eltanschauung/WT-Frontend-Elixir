@@ -27,13 +27,27 @@ defmodule WhaleChatWeb.StatsFragments do
       ~s(<div class="wt-cumulative-fragment" data-page="#{page}" data-total-pages="#{total_pages}" data-total-rows="#{total_rows}">),
       cumulative_toolbar_html(q, page, total_rows, total_pages, prev_url, next_url),
       cumulative_table_html(rows, default_avatar, get_opt(opts, :focused_player, nil)),
-      if(total_rows > 0, do: pagination_html(page, total_pages, prev_url, next_url, "table-pagination table-pagination--bottom"), else: ""),
+      if(total_rows > 0,
+        do:
+          pagination_html(
+            page,
+            total_pages,
+            prev_url,
+            next_url,
+            "table-pagination table-pagination--bottom"
+          ),
+        else: ""
+      ),
       "</div>"
     ]
     |> IO.iodata_to_binary()
   end
 
-  def cumulative_rows_html(rows, default_avatar \\ "/stats/assets/whaley-avatar.jpg", focused_steamid \\ nil) do
+  def cumulative_rows_html(
+        rows,
+        default_avatar \\ "/stats/assets/whaley-avatar.jpg",
+        focused_steamid \\ nil
+      ) do
     rows
     |> Enum.map(&cumulative_row_html(&1, default_avatar, focused_steamid))
     |> IO.iodata_to_binary()
@@ -42,15 +56,23 @@ defmodule WhaleChatWeb.StatsFragments do
   def focused_player_html(nil, _default_avatar), do: ""
   def focused_player_html(row, default_avatar), do: focused_player_html(row, default_avatar, %{})
   def focused_player_html(nil, _default_avatar, _opts), do: ""
+
   def focused_player_html(row, default_avatar, opts) do
     avatar = fallback(row[:avatar], default_avatar)
     name = fallback(row[:personaname], fallback(row[:steamid], "Unknown"))
     perf = get_opt(opts, :performance_averages, %{})
-    comparison_enabled = get_opt(opts, :comparison_enabled, false) and number_or_zero(perf[:eligible] || perf["eligible"]) > 0
+
+    comparison_enabled =
+      get_opt(opts, :comparison_enabled, false) and
+        number_or_zero(perf[:eligible] || perf["eligible"]) > 0
+
     profile_link =
       case row[:profileurl] do
-        url when is_binary(url) and url != "" -> ~s(<a href="#{e(url)}" target="_blank" rel="noopener">Steam Profile</a>)
-        _ -> ""
+        url when is_binary(url) and url != "" ->
+          ~s(<a href="#{e(url)}" target="_blank" rel="noopener">Steam Profile</a>)
+
+        _ ->
+          ""
       end
 
     kd = row[:kd] || 0
@@ -67,11 +89,51 @@ defmodule WhaleChatWeb.StatsFragments do
     total_ubers = number_or_zero(row[:total_ubers])
     dropped = number_or_zero(row[:uber_drops] || row[:medic_drops])
 
-    damage_attr = stat_compare_attr(comparison_enabled, damage, perf[:damage] || perf["damage"], true, "Damage Dealt")
-    dpm_attr = stat_compare_attr(comparison_enabled, dpm, perf[:dpm] || perf["dpm"], true, "Damage Per Minute")
-    acc_attr = stat_compare_attr(comparison_enabled, acc, perf[:accuracy] || perf["accuracy"], true, "Shots hit vs fired")
-    heal_attr = stat_compare_attr(comparison_enabled, healing, perf[:healing] || perf["healing"], true, "Healing Done")
-    air_attr = stat_compare_attr(comparison_enabled, airshots, perf[:airshots] || perf["airshots"], true, "Airshots")
+    damage_attr =
+      stat_compare_attr(
+        comparison_enabled,
+        damage,
+        perf[:damage] || perf["damage"],
+        true,
+        "Damage Dealt"
+      )
+
+    dpm_attr =
+      stat_compare_attr(
+        comparison_enabled,
+        dpm,
+        perf[:dpm] || perf["dpm"],
+        true,
+        "Damage Per Minute"
+      )
+
+    acc_attr =
+      stat_compare_attr(
+        comparison_enabled,
+        acc,
+        perf[:accuracy] || perf["accuracy"],
+        true,
+        "Shots hit vs fired"
+      )
+
+    heal_attr =
+      stat_compare_attr(
+        comparison_enabled,
+        healing,
+        perf[:healing] || perf["healing"],
+        true,
+        "Healing Done"
+      )
+
+    air_attr =
+      stat_compare_attr(
+        comparison_enabled,
+        airshots,
+        perf[:airshots] || perf["airshots"],
+        true,
+        "Airshots"
+      )
+
     {kd_class, kd_title} = kd_compare(comparison_enabled, kd, perf[:kd] || perf["kd"])
 
     """
@@ -126,9 +188,15 @@ defmodule WhaleChatWeb.StatsFragments do
   end
 
   def current_log_fragment_html(data, opts \\ [])
-  def current_log_fragment_html(%{ok: true, log: log}, opts), do: current_log_fragment_html(log, opts)
-  def current_log_fragment_html(%{log: nil}, _opts), do: ~s(<div class="empty-state">No logs available.</div>)
-  def current_log_fragment_html(nil, _opts), do: ~s(<div class="empty-state">No logs available.</div>)
+
+  def current_log_fragment_html(%{ok: true, log: log}, opts),
+    do: current_log_fragment_html(log, opts)
+
+  def current_log_fragment_html(%{log: nil}, _opts),
+    do: ~s(<div class="empty-state">No logs available.</div>)
+
+  def current_log_fragment_html(nil, _opts),
+    do: ~s(<div class="empty-state">No logs available.</div>)
 
   def current_log_fragment_html(log, opts) when is_map(log) do
     default_avatar = get_opt(opts, :default_avatar_url, "/stats/assets/whaley-avatar.jpg")
@@ -217,6 +285,7 @@ defmodule WhaleChatWeb.StatsFragments do
     personaname = fallback(row[:personaname], steamid)
     avatar = fallback(row[:avatar], default_avatar)
     profile_url = row[:profileurl]
+
     classes =
       []
       |> maybe_push(row[:is_online], "online-player")
@@ -234,6 +303,7 @@ defmodule WhaleChatWeb.StatsFragments do
     favorite_class = favorite_class_icon_html(row[:favorite_class])
     accuracy_class = if is_integer(row[:favorite_class]), do: row[:favorite_class], else: 0
     tr_class = if classes == "", do: "", else: ~s( class="#{e(classes)}")
+
     name_title =
       cond do
         row[:is_online] && row[:is_admin] -> "Connected Admin"
@@ -327,7 +397,27 @@ defmodule WhaleChatWeb.StatsFragments do
     kd = if deaths > 0, do: kills / deaths, else: kills * 1.0
     dpm = if minutes > 0, do: damage / minutes, else: damage * 1.0
     dtpm = if minutes > 0, do: damage_taken / minutes, else: damage_taken * 1.0
-    acc = if shots > 0, do: hits * 100.0 / shots, else: nil
+    active_acc = player[:active_weapon_accuracy]
+
+    {acc, acc_title} =
+      cond do
+        is_map(active_acc) && number_or_zero(active_acc["shots"]) > 0 ->
+          shots_value = number_or_zero(active_acc["shots"])
+          hits_value = number_or_zero(active_acc["hits"])
+          acc_value = if shots_value > 0, do: hits_value * 100.0 / shots_value, else: nil
+          label = fallback(active_acc["label"], "Weapon")
+          {acc_value, "#{label} (#{number(shots_value)} shots / #{number(hits_value)} hits)"}
+
+        shots > 0 ->
+          acc_value = hits * 100.0 / shots
+
+          {acc_value,
+           "#{decimal(acc_value, 1)}% overall accuracy (#{number(shots)} shots / #{number(hits)} hits)"}
+
+        true ->
+          {nil, "Accuracy unavailable"}
+      end
+
     name_cls = if player[:is_admin], do: "admin-name", else: ""
 
     link_html =
@@ -346,7 +436,7 @@ defmodule WhaleChatWeb.StatsFragments do
       <td>#{number(kills)}</td>
       <td>#{number(deaths)}</td>
       <td>#{decimal(kd, 2)}</td>
-      <td>#{if(acc == nil, do: "—", else: decimal(acc, 1) <> "%")}</td>
+      <td title="#{e(acc_title)}">#{if(acc == nil, do: "—", else: decimal(acc, 1) <> "%")}</td>
       <td>#{number(damage)}</td>
       <td>#{decimal(dpm, 1)}</td>
       <td>#{decimal(dtpm, 1)}</td>
@@ -399,6 +489,7 @@ defmodule WhaleChatWeb.StatsFragments do
       _ -> "Unknown"
     end
   end
+
   defp format_log_datetime(_), do: "Unknown"
 
   defp format_playtime(seconds) when is_integer(seconds) and seconds > 0 do
@@ -406,24 +497,30 @@ defmodule WhaleChatWeb.StatsFragments do
     m = div(rem(seconds, 3600), 60)
     if h > 0, do: "#{h}h #{m}m", else: "#{max(m, 1)}m"
   end
+
   defp format_playtime(_), do: "0m"
 
   defp number(nil), do: "0"
   defp number(v) when is_integer(v), do: format_integer(v)
   defp number(v) when is_float(v), do: format_integer(trunc(v))
+
   defp number(v) when is_binary(v) do
     case Integer.parse(v) do
       {i, _} -> format_integer(i)
       :error -> "0"
     end
   end
+
   defp number(_), do: "0"
 
   defp decimal(v, places) when is_integer(v), do: :erlang.float_to_binary(v / 1, decimals: places)
   defp decimal(v, places) when is_float(v), do: :erlang.float_to_binary(v, decimals: places)
+
   defp decimal(v, places) when is_binary(v) do
     case Float.parse(v) do
-      {f, _} -> decimal(f, places)
+      {f, _} ->
+        decimal(f, places)
+
       :error ->
         case Integer.parse(v) do
           {i, _} -> decimal(i, places)
@@ -431,6 +528,7 @@ defmodule WhaleChatWeb.StatsFragments do
         end
     end
   end
+
   defp decimal(_, places), do: decimal(0.0, places)
 
   defp format_integer(i) do
@@ -455,11 +553,14 @@ defmodule WhaleChatWeb.StatsFragments do
   end
 
   defp stat_compare_attr(false, _value, _average, _hib, title), do: title_attr(title)
-  defp stat_compare_attr(_enabled, _value, average, _hib, title) when average in [nil, 0, 0.0], do: title_attr(title)
+
+  defp stat_compare_attr(_enabled, _value, average, _hib, title) when average in [nil, 0, 0.0],
+    do: title_attr(title)
+
   defp stat_compare_attr(true, value, average, higher_is_better, title) do
     value = number_or_zero(value)
     average = number_or_zero(average)
-    diff = if average > 0, do: ((value - average) / average) * 100.0, else: 0.0
+    diff = if average > 0, do: (value - average) / average * 100.0, else: 0.0
 
     suffix =
       cond do
@@ -472,11 +573,14 @@ defmodule WhaleChatWeb.StatsFragments do
   end
 
   defp kd_compare(false, kd, _avg), do: {"stat-kd--neutral", "K/D: " <> decimal(kd, 2)}
-  defp kd_compare(_enabled, kd, avg) when avg in [nil, 0, 0.0], do: {"stat-kd--neutral", "K/D: " <> decimal(kd, 2)}
+
+  defp kd_compare(_enabled, kd, avg) when avg in [nil, 0, 0.0],
+    do: {"stat-kd--neutral", "K/D: " <> decimal(kd, 2)}
+
   defp kd_compare(true, kd, avg) do
     kd = number_or_zero(kd)
     avg = number_or_zero(avg)
-    diff = ((kd - avg) / avg) * 100.0
+    diff = (kd - avg) / avg * 100.0
 
     klass =
       cond do
@@ -499,9 +603,12 @@ defmodule WhaleChatWeb.StatsFragments do
   defp number_or_zero(v) when is_integer(v), do: v
   defp number_or_zero(v) when is_float(v), do: v
   defp number_or_zero(%Decimal{} = v), do: Decimal.to_float(v)
+
   defp number_or_zero(v) when is_binary(v) do
     case Float.parse(v) do
-      {f, _} -> f
+      {f, _} ->
+        f
+
       :error ->
         case Integer.parse(v) do
           {i, _} -> i
@@ -509,6 +616,7 @@ defmodule WhaleChatWeb.StatsFragments do
         end
     end
   end
+
   defp number_or_zero(_), do: 0
 
   defp get_opt(opts, key, default) when is_list(opts), do: Keyword.get(opts, key, default)

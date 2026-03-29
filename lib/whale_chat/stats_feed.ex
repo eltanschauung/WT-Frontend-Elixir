@@ -11,6 +11,16 @@ defmodule WhaleChat.StatsFeed do
   @logs_table "whaletracker_logs"
   @log_players_table "whaletracker_log_players"
   @stats_min_playtime_sort 4 * 3600
+  @weapon_category_metadata %{
+    "shotguns" => %{label: "Shotgun"},
+    "scatterguns" => %{label: "Scattergun"},
+    "pistols" => %{label: "Pistol"},
+    "rocketlaunchers" => %{label: "Rocket Launcher"},
+    "grenadelaunchers" => %{label: "Grenade Launcher"},
+    "stickylaunchers" => %{label: "Sticky Launcher"},
+    "snipers" => %{label: "Sniper Rifle"},
+    "revolvers" => %{label: "Revolver"}
+  }
 
   def page_payload(opts \\ %{}) do
     search = str(Map.get(opts, :q, Map.get(opts, "q", "")))
@@ -48,6 +58,7 @@ defmodule WhaleChat.StatsFeed do
       playtime_seconds = int(data["total_playtime"])
       total_damage = int(data["total_damage"])
       total_minutes = if playtime_seconds > 0, do: playtime_seconds / 60.0, else: 0.0
+
       base = %{
         total_players: int(data["total_players"]),
         total_kills: int(data["total_kills"]),
@@ -60,7 +71,8 @@ defmodule WhaleChat.StatsFeed do
         total_damage_taken: int(data["total_damage_taken"]),
         total_drops: int(data["total_drops"]),
         total_ubers_used: int(data["total_ubers_used"]),
-        average_dpm: if(total_minutes > 0, do: Float.round(total_damage / total_minutes, 1), else: 0.0)
+        average_dpm:
+          if(total_minutes > 0, do: Float.round(total_damage / total_minutes, 1), else: 0.0)
       }
 
       base
@@ -76,7 +88,10 @@ defmodule WhaleChat.StatsFeed do
   def cumulative(opts \\ %{}) do
     q = str(Map.get(opts, :q, Map.get(opts, "q", ""))) |> String.trim()
     page = positive_int(Map.get(opts, :page, Map.get(opts, "page", 1)), 1)
-    per_page = positive_int(Map.get(opts, :per_page, Map.get(opts, "per_page", 50)), 50) |> min(100)
+
+    per_page =
+      positive_int(Map.get(opts, :per_page, Map.get(opts, "per_page", 50)), 50) |> min(100)
+
     offset = (page - 1) * per_page
 
     try do
@@ -109,16 +124,34 @@ defmodule WhaleChat.StatsFeed do
       }
     rescue
       e ->
-        Logger.error("StatsFeed.cumulative failed: " <> Exception.format(:error, e, __STACKTRACE__))
-        %{ok: false, rows: [], total: 0, page: 1, total_pages: 1, per_page: 50, q: q, focused_player: nil}
+        Logger.error(
+          "StatsFeed.cumulative failed: " <> Exception.format(:error, e, __STACKTRACE__)
+        )
+
+        %{
+          ok: false,
+          rows: [],
+          total: 0,
+          page: 1,
+          total_pages: 1,
+          per_page: 50,
+          q: q,
+          focused_player: nil
+        }
     end
   end
 
   def logs(opts \\ %{}) do
     page = positive_int(Map.get(opts, :page, Map.get(opts, "page", 1)), 1)
-    per_page = positive_int(Map.get(opts, :per_page, Map.get(opts, "per_page", 25)), 25) |> min(100)
+
+    per_page =
+      positive_int(Map.get(opts, :per_page, Map.get(opts, "per_page", 25)), 25) |> min(100)
+
     scope = logs_scope(Map.get(opts, :scope, Map.get(opts, "scope", "regular")))
-    include_players = truthy?(Map.get(opts, :include_players, Map.get(opts, "include_players", false)))
+
+    include_players =
+      truthy?(Map.get(opts, :include_players, Map.get(opts, "include_players", false)))
+
     offset = (page - 1) * per_page
 
     {where_sql, params} = logs_scope_sql(scope)
@@ -239,6 +272,7 @@ defmodule WhaleChat.StatsFeed do
 
   def fetch_player(steamid) do
     steamid = str(steamid) |> String.trim()
+
     if steamid == "" do
       nil
     else
@@ -280,7 +314,8 @@ defmodule WhaleChat.StatsFeed do
     _ -> nil
   end
 
-  def default_avatar_url, do: Application.get_env(:whale_chat, :default_avatar_url, @default_avatar)
+  def default_avatar_url,
+    do: Application.get_env(:whale_chat, :default_avatar_url, @default_avatar)
 
   defp fetch_cumulative_rows(limit, offset) do
     favorite_class_expr = favorite_class_select_expr()
@@ -405,7 +440,8 @@ defmodule WhaleChat.StatsFeed do
         steamid: steamid,
         personaname: if(personaname == "", do: steamid, else: personaname),
         avatar: avatar,
-        profileurl: if(steamid != "", do: "https://steamcommunity.com/profiles/" <> steamid, else: nil),
+        profileurl:
+          if(steamid != "", do: "https://steamcommunity.com/profiles/" <> steamid, else: nil),
         kills: kills,
         deaths: deaths,
         assists: assists,
@@ -509,13 +545,16 @@ defmodule WhaleChat.StatsFeed do
     WHERE l.started_at >= ? AND l.started_at < ?
     """
 
-    players_current_week = scalar_query(weekly_player_sql, [windows.current_week_start, windows.now_ts])
-    players_previous_week = scalar_query(weekly_player_sql, [windows.previous_week_start, windows.current_week_start])
+    players_current_week =
+      scalar_query(weekly_player_sql, [windows.current_week_start, windows.now_ts])
+
+    players_previous_week =
+      scalar_query(weekly_player_sql, [windows.previous_week_start, windows.current_week_start])
 
     {players_week_change_percent, players_week_trend} =
       cond do
         players_previous_week > 0 ->
-          pct = ((players_current_week - players_previous_week) / players_previous_week) * 100.0
+          pct = (players_current_week - players_previous_week) / players_previous_week * 100.0
 
           trend =
             cond do
@@ -533,7 +572,9 @@ defmodule WhaleChat.StatsFeed do
           {nil, "flat"}
       end
 
-    {best_killstreak_week, best_killstreak_week_leaders} = weekly_killstreak_podium(windows.current_week_start)
+    {best_killstreak_week, best_killstreak_week_leaders} =
+      weekly_killstreak_podium(windows.current_week_start)
+
     {weekly_top_dpm, weekly_top_dpm_owner} = weekly_top_dpm(windows.current_week_start)
 
     %{
@@ -552,7 +593,9 @@ defmodule WhaleChat.StatsFeed do
     }
   rescue
     e ->
-      Logger.error("StatsFeed.summary_insights failed: " <> Exception.format(:error, e, __STACKTRACE__))
+      Logger.error(
+        "StatsFeed.summary_insights failed: " <> Exception.format(:error, e, __STACKTRACE__)
+      )
 
       %{
         playtime_month_hours: 0.0,
@@ -621,7 +664,9 @@ defmodule WhaleChat.StatsFeed do
 
           %{
             steamid: steamid,
-            personaname: str(profile["personaname"]) |> fallback_blank(str(row["personaname"]) |> fallback_blank(steamid)),
+            personaname:
+              str(profile["personaname"])
+              |> fallback_blank(str(row["personaname"]) |> fallback_blank(steamid)),
             avatar: str(profile["avatarfull"]) |> fallback_blank(default_avatar),
             profileurl: "https://steamcommunity.com/profiles/" <> steamid,
             best_streak: int(row["best_streak"]),
@@ -655,13 +700,15 @@ defmodule WhaleChat.StatsFeed do
 
         if playtime > 0 do
           steamid = str(m["steamid"])
-          dpm = Float.round((damage * 60.0) / playtime, 1)
+          dpm = Float.round(damage * 60.0 / playtime, 1)
           profile = SteamProfiles.fetch_many([steamid])[steamid] || %{}
           default_avatar = default_avatar_url()
 
           owner = %{
             steamid: steamid,
-            personaname: str(profile["personaname"]) |> fallback_blank(str(m["personaname"]) |> fallback_blank(steamid)),
+            personaname:
+              str(profile["personaname"])
+              |> fallback_blank(str(m["personaname"]) |> fallback_blank(steamid)),
             avatar: str(profile["avatarfull"]) |> fallback_blank(default_avatar),
             profileurl: "https://steamcommunity.com/profiles/" <> steamid
           }
@@ -736,12 +783,28 @@ defmodule WhaleChat.StatsFeed do
 
       _ ->
         now = System.system_time(:second)
-        %{now_ts: now, current_week_start: now - 7 * 86_400, previous_week_start: now - 14 * 86_400, month_start: 0, next_month_start: now, month_label: "Month"}
+
+        %{
+          now_ts: now,
+          current_week_start: now - 7 * 86_400,
+          previous_week_start: now - 14 * 86_400,
+          month_start: 0,
+          next_month_start: now,
+          month_label: "Month"
+        }
     end
   rescue
     _ ->
       now = System.system_time(:second)
-      %{now_ts: now, current_week_start: now - 7 * 86_400, previous_week_start: now - 14 * 86_400, month_start: 0, next_month_start: now, month_label: "Month"}
+
+      %{
+        now_ts: now,
+        current_week_start: now - 7 * 86_400,
+        previous_week_start: now - 14 * 86_400,
+        month_start: 0,
+        next_month_start: now,
+        month_label: "Month"
+      }
   end
 
   defp format_gamemode_label(gamemode) do
@@ -789,8 +852,11 @@ defmodule WhaleChat.StatsFeed do
         :persistent_term.put(key, supported)
         supported
 
-      true -> true
-      _ -> false
+      true ->
+        true
+
+      _ ->
+        false
     end
   rescue
     _ -> false
@@ -805,7 +871,8 @@ defmodule WhaleChat.StatsFeed do
   end
 
   defp stats_order_clause do
-    ratio_expr = "COALESCE((kills + (0.5 * assists)) / NULLIF(deaths, 0), (kills + (0.5 * assists)))"
+    ratio_expr =
+      "COALESCE((kills + (0.5 * assists)) / NULLIF(deaths, 0), (kills + (0.5 * assists)))"
 
     "CASE WHEN playtime >= #{@stats_min_playtime_sort} THEN #{ratio_expr} ELSE -1 END DESC, (kills + assists) DESC, kills DESC"
   end
@@ -841,9 +908,15 @@ defmodule WhaleChat.StatsFeed do
   defp fetch_log_players(log_ids) do
     placeholders = Enum.map_join(log_ids, ",", fn _ -> "?" end)
 
+    category_select_clause =
+      @weapon_category_metadata
+      |> Map.keys()
+      |> Enum.flat_map(fn slug -> [", shots_#{slug}", ", hits_#{slug}"] end)
+      |> Enum.join("")
+
     sql = """
     SELECT log_id, steamid, personaname, kills, deaths, assists, damage, damage_taken, healing,
-           headshots, backstabs, total_ubers, playtime, shots, hits,
+           headshots, backstabs, total_ubers, playtime, shots, hits#{category_select_clause},
            COALESCE(airshots, 0) AS airshots, COALESCE(is_admin, 0) AS is_admin
     FROM #{@log_players_table}
     WHERE log_id IN (#{placeholders})
@@ -860,7 +933,7 @@ defmodule WhaleChat.StatsFeed do
       {:error, _} ->
         fallback_sql = """
         SELECT log_id, steamid, personaname, kills, deaths, assists, damage, damage_taken, healing,
-               headshots, backstabs, total_ubers, playtime, shots, hits
+               headshots, backstabs, total_ubers, playtime, shots, hits#{category_select_clause}
         FROM #{@log_players_table}
         WHERE log_id IN (#{placeholders})
         ORDER BY log_id ASC, kills DESC, assists DESC
@@ -868,7 +941,9 @@ defmodule WhaleChat.StatsFeed do
 
         case SQL.query(Repo, fallback_sql, log_ids) do
           {:ok, %{rows: rows, columns: cols}} ->
-            mapped = Enum.map(rows, &row_map(&1, cols)) |> Enum.map(&Map.put_new(&1, "airshots", 0))
+            mapped =
+              Enum.map(rows, &row_map(&1, cols)) |> Enum.map(&Map.put_new(&1, "airshots", 0))
+
             enriched = enrich_log_players(mapped)
             {:ok, Enum.group_by(enriched, &str(&1.log_id))}
 
@@ -894,6 +969,12 @@ defmodule WhaleChat.StatsFeed do
     Enum.map(rows, fn row ->
       steamid = str(row["steamid"])
       profile = Map.get(profiles, steamid, %{})
+      {weapon_summary, active_acc} = weapon_summary_for_log_row(row)
+      {total_shots, total_hits} = total_weapon_accuracy_counts(row)
+      shots = if total_shots > 0, do: total_shots, else: int(row["shots"])
+      hits = if total_shots > 0, do: total_hits, else: int(row["hits"])
+      accuracy_overall = if shots > 0, do: Float.round(hits * 100.0 / shots, 1), else: 0.0
+
       personaname =
         case str(profile["personaname"]) do
           "" -> str(row["personaname"])
@@ -911,7 +992,8 @@ defmodule WhaleChat.StatsFeed do
         steamid: steamid,
         personaname: if(personaname == "", do: steamid, else: personaname),
         avatar: avatar,
-        profileurl: if(steamid != "", do: "https://steamcommunity.com/profiles/" <> steamid, else: nil),
+        profileurl:
+          if(steamid != "", do: "https://steamcommunity.com/profiles/" <> steamid, else: nil),
         is_admin: Map.get(admin_flags, steamid, false) || truthy?(row["is_admin"]),
         kills: int(row["kills"]),
         deaths: int(row["deaths"]),
@@ -923,11 +1005,86 @@ defmodule WhaleChat.StatsFeed do
         backstabs: int(row["backstabs"]),
         total_ubers: int(row["total_ubers"]),
         playtime: int(row["playtime"]),
-        shots: int(row["shots"]),
-        hits: int(row["hits"]),
-        airshots: int(row["airshots"])
+        shots: shots,
+        hits: hits,
+        accuracy_overall: accuracy_overall,
+        airshots: int(row["airshots"]),
+        weapon_category_summary: weapon_summary,
+        active_weapon_accuracy: active_acc
       }
     end)
+  end
+
+  defp weapon_summary_for_log_row(row) do
+    summary =
+      @weapon_category_metadata
+      |> Enum.reduce([], fn {slug, meta}, acc ->
+        shots = int(row["shots_#{slug}"])
+        hits = int(row["hits_#{slug}"])
+
+        if shots <= 0 do
+          acc
+        else
+          acc ++
+            [
+              %{
+                "slug" => slug,
+                "label" => meta.label,
+                "shots" => shots,
+                "hits" => hits,
+                "accuracy" => hits / max(shots, 1) * 100.0
+              }
+            ]
+        end
+      end)
+      |> Enum.sort_by(fn item -> {-int(item["shots"]), -floaty(item["accuracy"])} end)
+      |> fallback_overall_weapon_summary(row)
+
+    {summary, List.first(summary)}
+  end
+
+  defp fallback_overall_weapon_summary([], row) do
+    {total_shots, total_hits} = total_weapon_accuracy_counts(row)
+
+    if total_shots > 0 do
+      [
+        %{
+          "slug" => "overall",
+          "label" => "Overall",
+          "shots" => total_shots,
+          "hits" => total_hits,
+          "accuracy" => total_hits / max(total_shots, 1) * 100.0
+        }
+      ]
+    else
+      []
+    end
+  end
+
+  defp fallback_overall_weapon_summary(summary, _row), do: summary
+
+  defp total_weapon_accuracy_counts(row) do
+    pairs = [
+      {"shots_shotguns", "hits_shotguns"},
+      {"shots_scatterguns", "hits_scatterguns"},
+      {"shots_pistols", "hits_pistols"},
+      {"shots_rocketlaunchers", "hits_rocketlaunchers"},
+      {"shots_grenadelaunchers", "hits_grenadelaunchers"},
+      {"shots_stickylaunchers", "hits_stickylaunchers"},
+      {"shots_snipers", "hits_snipers"},
+      {"shots_revolvers", "hits_revolvers"}
+    ]
+
+    {total_shots, total_hits} =
+      Enum.reduce(pairs, {0, 0}, fn {shots_key, hits_key}, {s_acc, h_acc} ->
+        {s_acc + int(row[shots_key]), h_acc + int(row[hits_key])}
+      end)
+
+    if total_shots == 0 and Map.has_key?(row, "shots") and Map.has_key?(row, "hits") do
+      {int(row["shots"]), int(row["hits"])}
+    else
+      {total_shots, total_hits}
+    end
   end
 
   defp admin_flags_for_ids([]), do: %{}
@@ -970,7 +1127,9 @@ defmodule WhaleChat.StatsFeed do
 
   defp positive_int(value, default) do
     case value do
-      v when is_integer(v) and v > 0 -> v
+      v when is_integer(v) and v > 0 ->
+        v
+
       v when is_binary(v) ->
         case Integer.parse(v) do
           {i, _} when i > 0 -> i
@@ -997,15 +1156,19 @@ defmodule WhaleChat.StatsFeed do
       :error -> 0
     end
   end
+
   defp int(_), do: 0
 
   defp floaty(nil), do: 0.0
   defp floaty(v) when is_float(v), do: v
   defp floaty(v) when is_integer(v), do: v / 1
   defp floaty(%Decimal{} = v), do: Decimal.to_float(v)
+
   defp floaty(v) when is_binary(v) do
     case Float.parse(v) do
-      {f, _} -> f
+      {f, _} ->
+        f
+
       :error ->
         case Integer.parse(v) do
           {i, _} -> i / 1
@@ -1013,6 +1176,6 @@ defmodule WhaleChat.StatsFeed do
         end
     end
   end
-  defp floaty(_), do: 0.0
 
+  defp floaty(_), do: 0.0
 end
