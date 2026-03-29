@@ -398,6 +398,7 @@ defmodule WhaleChatWeb.StatsFragments do
     dpm = if minutes > 0, do: damage / minutes, else: damage * 1.0
     dtpm = if minutes > 0, do: damage_taken / minutes, else: damage_taken * 1.0
     active_acc = player[:active_weapon_accuracy]
+    accuracy_icon = log_accuracy_class_icon_html(active_acc)
 
     {acc, acc_title} =
       cond do
@@ -436,7 +437,7 @@ defmodule WhaleChatWeb.StatsFragments do
       <td>#{number(kills)}</td>
       <td>#{number(deaths)}</td>
       <td>#{decimal(kd, 2)}</td>
-      <td title="#{e(acc_title)}">#{if(acc == nil, do: "—", else: decimal(acc, 1) <> "%")}</td>
+      <td class="stat-accuracy-cell" title="#{e(acc_title)}"><span class="stat-accuracy-value">#{if(acc == nil, do: "—", else: decimal(acc, 1) <> "%")}</span>#{accuracy_icon}</td>
       <td>#{number(damage)}</td>
       <td>#{decimal(dpm, 1)}</td>
       <td>#{decimal(dtpm, 1)}</td>
@@ -542,10 +543,34 @@ defmodule WhaleChatWeb.StatsFragments do
   defp maybe_push(list, true, value), do: [value | list]
   defp maybe_push(list, _, _), do: list
 
-  defp favorite_class_icon_html(id) do
+  defp favorite_class_icon_html(id), do: class_icon_html(id, "Favorite class")
+
+  defp log_accuracy_class_icon_html(active_acc) when is_map(active_acc) do
+    active_acc
+    |> Map.get("slug")
+    |> accuracy_class_id_for_slug()
+    |> case do
+      0 -> ""
+      class_id -> class_icon_html(class_id, "Accuracy class")
+    end
+  end
+
+  defp log_accuracy_class_icon_html(_), do: ""
+
+  defp accuracy_class_id_for_slug("scatterguns"), do: 1
+  defp accuracy_class_id_for_slug("snipers"), do: 2
+  defp accuracy_class_id_for_slug("rocketlaunchers"), do: 3
+  defp accuracy_class_id_for_slug("grenadelaunchers"), do: 4
+  defp accuracy_class_id_for_slug("stickylaunchers"), do: 4
+  defp accuracy_class_id_for_slug("shotguns"), do: 9
+  defp accuracy_class_id_for_slug("pistols"), do: 9
+  defp accuracy_class_id_for_slug("revolvers"), do: 8
+  defp accuracy_class_id_for_slug(_), do: 0
+
+  defp class_icon_html(id, title_prefix) do
     case @favorite_class_icons[id] do
       {label, path} ->
-        ~s(<img class="stat-accuracy-icon" src="#{e(path)}" alt="#{e(label)}" title="Favorite class: #{e(label)}">)
+        ~s(<img class="stat-accuracy-icon" src="#{e(path)}" alt="#{e(label)}" title="#{e(title_prefix)}: #{e(label)}">)
 
       _ ->
         ""
